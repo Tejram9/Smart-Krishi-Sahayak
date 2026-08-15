@@ -4,6 +4,7 @@ import com.smartkrishisahayak.dto.request.ChatMessageRequest;
 import com.smartkrishisahayak.dto.response.ChatMessageResponse;
 import com.smartkrishisahayak.dto.response.ChatResponse;
 import com.smartkrishisahayak.dto.response.ChatSessionResponse;
+import com.smartkrishisahayak.dto.response.SafetyAssessment;
 import com.smartkrishisahayak.entity.ChatMessage;
 import com.smartkrishisahayak.entity.ChatSession;
 import com.smartkrishisahayak.entity.User;
@@ -15,6 +16,7 @@ import com.smartkrishisahayak.repository.ChatSessionRepository;
 import com.smartkrishisahayak.repository.UserRepository;
 import com.smartkrishisahayak.security.UserPrincipal;
 import com.smartkrishisahayak.service.AgricultureKnowledgeService;
+import com.smartkrishisahayak.service.AgricultureSafetyService;
 import com.smartkrishisahayak.service.AiChatService;
 import com.smartkrishisahayak.service.ChatService;
 import org.slf4j.Logger;
@@ -41,18 +43,21 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final AiChatService aiChatService;
     private final AgricultureKnowledgeService agricultureKnowledgeService;
+    private final AgricultureSafetyService agricultureSafetyService;
 
     @Autowired
     public ChatServiceImpl(ChatSessionRepository chatSessionRepository,
                            ChatMessageRepository chatMessageRepository,
                            UserRepository userRepository,
                            AiChatService aiChatService,
-                           AgricultureKnowledgeService agricultureKnowledgeService) {
+                           AgricultureKnowledgeService agricultureKnowledgeService,
+                           AgricultureSafetyService agricultureSafetyService) {
         this.chatSessionRepository = chatSessionRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.userRepository = userRepository;
         this.aiChatService = aiChatService;
         this.agricultureKnowledgeService = agricultureKnowledgeService;
+        this.agricultureSafetyService = agricultureSafetyService;
     }
 
     @Override
@@ -95,9 +100,22 @@ public class ChatServiceImpl implements ChatService {
         ChatMessage userMessage = new ChatMessage(session, MessageSender.USER, request.getMessage(), language);
         ChatMessage savedUserMessage = chatMessageRepository.save(userMessage);
 
-        // Ground AI response using verified agriculture knowledge base
+        // 1. Retrieve grounded agriculture context from verified knowledge base
         String verifiedContext = agricultureKnowledgeService.buildGroundedContext(request.getMessage(), language);
-        String aiText = aiChatService.generateResponse(request.getMessage(), language, verifiedContext);
+
+        // 2. Perform safety & responsible AI assessment
+        SafetyAssessment safetyAssessment = agricultureSafetyService.evaluateQuery(request.getMessage(), language, verifiedContext);
+
+        String aiText;
+        if (safetyAssessment.isOffTopic()) {
+            // Off-topic queries receive polite direct redirection without LLM invocation
+            aiText = safetyAssessment.getDirectResponse();
+        } else {
+            // Generate grounded response from AI provider
+            String rawAiText = aiChatService.generateResponse(request.getMessage(), language, verifiedContext);
+            // Post-process & sanitize response to ensure mandatory expert referrals where appropriate
+            aiText = agricultureSafetyService.sanitizeAiResponse(rawAiText, request.getMessage(), language, safetyAssessment);
+        }
 
         ChatMessage aiMessage = new ChatMessage(session, MessageSender.AI, aiText, language);
         ChatMessage savedAiMessage = chatMessageRepository.save(aiMessage);

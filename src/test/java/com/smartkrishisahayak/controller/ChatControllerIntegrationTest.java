@@ -283,9 +283,84 @@ class ChatControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @DisplayName("Test 15: Off-topic query receives polite agricultural redirect")
+    void sendMessage_offTopicQuery_returnsPoliteRedirect() throws Exception {
+        Long sessionId = createSessionForFarmerA();
+        Map<String, String> request = new HashMap<>();
+        request.put("message", "Who won yesterday's football match?");
+        request.put("language", "EN");
+
+        mockMvc.perform(post("/api/v1/chat/sessions/{sessionId}/messages", sessionId)
+                        .header("Authorization", "Bearer " + farmerAToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.aiMessage.message").value(containsString("Smart Krishi Sahayak")))
+                .andExpect(jsonPath("$.data.aiMessage.message").value(containsString("agriculture-related question")));
+    }
+
+    @Test
+    @DisplayName("Test 16: Marathi off-topic query receives Marathi redirect")
+    void sendMessage_marathiOffTopicQuery_returnsMarathiRedirect() throws Exception {
+        Long sessionId = createSessionForFarmerA();
+        Map<String, String> request = new HashMap<>();
+        request.put("message", "पायथन कोड कसा लिहावा?");
+        request.put("language", "MR");
+
+        mockMvc.perform(post("/api/v1/chat/sessions/{sessionId}/messages", sessionId)
+                        .header("Authorization", "Bearer " + farmerAToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.aiMessage.message").value(containsString("स्मार्ट कृषी सहाय्यक")))
+                .andExpect(jsonPath("$.data.aiMessage.message").value(containsString("शेतीशी संबंधित प्रश्न विचारा")));
+    }
+
+    @Test
+    @DisplayName("Test 17: Hindi off-topic query receives Hindi redirect")
+    void sendMessage_hindiOffTopicQuery_returnsHindiRedirect() throws Exception {
+        Long sessionId = createSessionForFarmerB();
+        Map<String, String> request = new HashMap<>();
+        request.put("message", "आज का क्रिकेट मैच कौन जीता?");
+        request.put("language", "HI");
+
+        mockMvc.perform(post("/api/v1/chat/sessions/{sessionId}/messages", sessionId)
+                        .header("Authorization", "Bearer " + farmerBToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.aiMessage.message").value(containsString("स्मार्ट कृषि सहायक")))
+                .andExpect(jsonPath("$.data.aiMessage.message").value(containsString("कृषि से संबंधित प्रश्न पूछें")));
+    }
+
+    @Test
+    @DisplayName("Test 18: High-risk query receives expert referral guidance in response")
+    void sendMessage_highRiskDosageQuery_includesExpertReferral() throws Exception {
+        Long sessionId = createSessionForFarmerA();
+        Map<String, String> request = new HashMap<>();
+        request.put("message", "Give me the exact pesticide dosage and mixing ratio for chemical spray");
+        request.put("language", "EN");
+
+        mockMvc.perform(post("/api/v1/chat/sessions/{sessionId}/messages", sessionId)
+                        .header("Authorization", "Bearer " + farmerAToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.aiMessage.message").value(containsString("Krishi Seva Kendra")));
+    }
+
     private Long createSessionForFarmerA() throws Exception {
         String responseBody = mockMvc.perform(post("/api/v1/chat/sessions")
                         .header("Authorization", "Bearer " + farmerAToken))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(responseBody).get("data").get("id").asLong();
+    }
+
+    private Long createSessionForFarmerB() throws Exception {
+        String responseBody = mockMvc.perform(post("/api/v1/chat/sessions")
+                        .header("Authorization", "Bearer " + farmerBToken))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(responseBody).get("data").get("id").asLong();

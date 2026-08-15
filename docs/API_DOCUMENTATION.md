@@ -192,7 +192,13 @@ Every API endpoint returns a predictable envelope JSON format.
 
 ## 5. Chat Session & AI Message Endpoints (`/api/v1/chat`)
 
-> **Knowledge-Grounded AI Architecture (Step 5D):** The backend supports pluggable AI providers via `app.ai.provider` (`mock` or `gemini`). Prior to calling the AI provider, the backend queries the MySQL database via `AgricultureKnowledgeService` to identify crops and topics in English, Marathi, or Hindi, and injects verified advisory facts (`verified_agriculture_content`) into the prompt. In `gemini` mode, answers are generated using Google Gemini 1.5 Flash strictly grounded in verified agricultural data, with explicit no-knowledge disclaimers and expert referrals for unsupported queries. In `mock` mode (default), development placeholder messages are returned.
+> **Responsible AI & Knowledge-Grounded Architecture (Steps 5D & 5E):** The backend supports pluggable AI providers via `app.ai.provider` (`mock` or `gemini`). The message flow incorporates a deterministic safety and grounding pipeline:
+> 1. **Knowledge Retrieval (`AgricultureKnowledgeService`):** Scans the query for crop and topic names in English, Marathi, or Hindi, retrieving published advisory articles from MySQL (`verified_agriculture_content`).
+> 2. **Safety & Risk Assessment (`AgricultureSafetyService`):**
+>    - **Off-Topic Detection:** Automatically redirects non-agricultural requests (sports, coding, politics, crypto) with polite native responses without LLM invocations.
+>    - **Risk Classification:** Classifies queries into `LOW_RISK`, `MEDIUM_RISK`, and `HIGH_RISK`.
+>    - **Expert Referrals:** High-risk queries (chemical mixing, exact pesticide dosages, acute toxicity) mandate localized Krishi Seva Kendra or Agriculture Officer referral disclaimers.
+>    - **No-Knowledge Disclaimers:** Queries without verified data explicitly acknowledge absence of verified records and direct farmers to local officers.
 
 ### 5.1 Create Chat Session
 - **Endpoint:** `POST /api/v1/chat/sessions`
@@ -247,7 +253,7 @@ Every API endpoint returns a predictable envelope JSON format.
     "aiMessage": {
       "id": 2,
       "sender": "AI",
-      "message": "कापसावरील गुलाबी बोंडअळीच्या नियंत्रणासाठी सत्यापित कृषी मार्गदर्शक तत्त्वे:\n\n१. पीक ४५ दिवसांचे झाल्यावर एकरी ५ कामगंध सापळे लावावेत.\n२. निंबोळी अर्क ५% किंवा ५ मिली निमतेल प्रति लिटर पाण्यात मिसळून फवारावे.\n३. ट्रायकोग्रामा मित्रकीटकांचे ट्रायकोकार्ड्स एकरी ३ ते ४ लावावेत.\n\nमहत्त्वाचे: कीड नियंत्रणाबाहेर गेल्यास स्थानिक कृषी सेवा केंद्र किंवा कृषी अधिकाऱ्यांचा सल्ला घ्यावा.",
+      "message": "कापसावरील गुलाबी बोंडअळीच्या नियंत्रणासाठी सत्यापित कृषी मार्गदर्शक तत्त्वे:\n\n१. पीक ४५ दिवसांचे झाल्यावर एकरी ५ कामगंध सापळे लावावेत.\n२. निंबोळी अर्क ५% किंवा ५ मिली निमतेल प्रति लिटर पाण्यात मिसळून फवारावे.\n३. ट्रायकोग्रामा मित्रकीटकांचे ट्रायकोकार्ड्स एकरी ३ ते ४ लावावेत.\n\nमहत्त्वाचे: रासायनिक उपचार किंवा कीटकनाशकांच्या प्रमाणासाठी स्थानिक कृषी सेवा केंद्र किंवा कृषी सहाय्यकांचा सल्ला घ्या.",
       "language": "MR",
       "timestamp": "2026-08-15T19:46:00"
     },

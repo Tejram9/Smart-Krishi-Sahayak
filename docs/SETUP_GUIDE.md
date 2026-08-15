@@ -234,4 +234,10 @@ app:
 - Factual advisory records from `verified_agriculture_content` with `is_published = true` are injected as structured context into Gemini prompt calls.
 - If no verified content is found for a specific crop/topic, Gemini explicitly provides a no-knowledge disclosure and advises contacting a local Krishi Seva Kendra, eliminating ungrounded hallucinations.
 
+### 6.5 Safety & Expert Referral Layer (Step 5E)
+- Deterministic safety classification (`AgricultureSafetyService`) assigns each query to a risk tier: `LOW_RISK`, `MEDIUM_RISK`, or `HIGH_RISK`.
+- Off-topic queries (coding, sports, politics) receive polite, immediate localized redirects in English, Marathi, or Hindi without incurring LLM costs or latency.
+- High-risk queries (chemical mixtures, exact pesticide dosages) automatically append mandatory local Krishi Seva Kendra / Agriculture Officer referral disclaimers to ensure farmer safety.
+
+
 

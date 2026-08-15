@@ -114,6 +114,7 @@ com.smartkrishisahayak
 │       ├── ChatSessionResponse.java
 │       ├── ChatMessageResponse.java
 │       ├── CropResponse.java
+│       ├── SafetyAssessment.java       # Safety & risk evaluation result
 │       └── AdminStatsResponse.java
 ├── entity
 │   ├── User.java                       # Authentication & core user attributes
@@ -122,6 +123,12 @@ com.smartkrishisahayak
 │   ├── ChatSession.java                # Conversation container
 │   ├── ChatMessage.java                # Individual user query & AI answer
 │   ├── VerifiedAgricultureContent.java # Curated farm guides
+│   ├── enums
+│   │   ├── UserRole.java
+│   │   ├── PreferredLanguage.java
+│   │   ├── MessageSender.java
+│   │   ├── RiskLevel.java              # LOW_RISK, MEDIUM_RISK, HIGH_RISK
+│   │   └── KnowledgeConfidence.java    # SUPPORTED, PARTIAL, UNSUPPORTED
 │   └── DiseaseDetectionRecord.java     # Reserved for Phase B
 ├── exception
 │   ├── GlobalExceptionHandler.java    # ControllerAdvice for clean JSON error responses
@@ -134,7 +141,7 @@ com.smartkrishisahayak
 │   ├── CropRepository.java
 │   ├── ChatSessionRepository.java
 │   ├── ChatMessageRepository.java
-│   └── VerifiedContentRepository.java
+│   └── VerifiedAgricultureContentRepository.java
 ├── security
 │   ├── CustomUserDetailsService.java   # Loads UserDetails from database
 │   ├── JwtAuthenticationFilter.java   # Intercepts requests & validates JWT tokens
@@ -146,6 +153,7 @@ com.smartkrishisahayak
 │   ├── ChatService.java
 │   ├── AiChatService.java             # Pluggable AI Chatbot Interface
 │   ├── AgricultureKnowledgeService.java # Knowledge grounding & retrieval service
+│   ├── AgricultureSafetyService.java   # Responsible AI, risk evaluation & safety
 │   ├── CropService.java
 │   ├── AdminService.java
 │   └── impl
@@ -153,6 +161,7 @@ com.smartkrishisahayak
 │       ├── FarmerProfileServiceImpl.java
 │       ├── ChatServiceImpl.java
 │       ├── AgricultureKnowledgeServiceImpl.java # MySQL-backed deterministic knowledge retrieval
+│       ├── AgricultureSafetyServiceImpl.java    # Rule-based safety & referral engine
 │       ├── MockAiChatServiceImpl.java # Offline / Development AI implementation
 │       ├── GeminiAiChatServiceImpl.java # Google Gemini 1.5 Flash grounded implementation
 │       ├── CropServiceImpl.java
@@ -256,10 +265,10 @@ sequenceDiagram
 
 ---
 
-## 6. AI Chatbot Architecture & Knowledge Grounding (Phase 5C & 5D)
+## 6. AI Chatbot Architecture, Knowledge Grounding & Responsible AI Safety (Phases 5C, 5D, 5E)
 
-### 6.1 Knowledge-Grounded Flow
-To ensure factual accuracy and prevent hallucination, the chatbot employs a MySQL-backed knowledge grounding pipeline:
+### 6.1 End-to-End Safety and Grounding Pipeline
+To ensure factual accuracy, prevent harmful advice, and avoid ungrounded hallucination, all chatbot interactions pass through a multi-stage evaluation pipeline:
 
 ```mermaid
 sequenceDiagram
@@ -267,49 +276,53 @@ sequenceDiagram
     actor Farmer as Farmer
     participant CS as ChatService
     participant KS as AgricultureKnowledgeService
-    participant DB as MySQL (Crops & Verified Content)
+    participant SS as AgricultureSafetyService
     participant AI as AiChatService (Gemini / Mock)
+    participant DB as MySQL (Chat & Knowledge)
 
     Farmer->>CS: POST /api/v1/chat/sessions/{id}/messages
     CS->>KS: buildGroundedContext(query, language)
-    KS->>DB: Multilingual Crop & Topic Match (EN, MR, HI)
-    DB-->>KS: Published Verified Advisory Content
-    KS-->>CS: Formatted Context Block
-    CS->>AI: generateResponse(query, language, verifiedContext)
-    AI-->>CS: Grounded Agricultural Answer
+    KS->>DB: Multilingual Crop & Topic Search
+    DB-->>KS: Verified Advisory Content
+    KS-->>CS: Grounded Context Block
+    
+    CS->>SS: evaluateQuery(query, language, verifiedContext)
+    alt Query is Off-Topic (e.g. coding, sports, politics)
+        SS-->>CS: SafetyAssessment(isOffTopic=true, redirectMessage)
+        Note over CS: Return polite localized redirect without calling LLM
+    else Query is Agriculture (LOW / MEDIUM / HIGH Risk)
+        SS-->>CS: SafetyAssessment(riskLevel, confidence, referralNotice)
+        CS->>AI: generateResponse(query, language, verifiedContext)
+        AI-->>CS: Generated Agricultural Response
+        CS->>SS: sanitizeAiResponse(response, query, language, assessment)
+        SS-->>CS: Sanitized & Grounded Response (with Expert Referral if HIGH_RISK)
+    end
+    
     CS->>DB: Save USER & AI ChatMessages
     CS-->>Farmer: Return ChatResponse JSON
 ```
 
-### 6.2 Provider-Independent Interface Pattern
-All AI requests pass through the `AiChatService` interface:
+### 6.2 Risk Classification Tiers
+Agricultural queries are deterministically classified into risk tiers:
+- **`LOW_RISK`**: General crop information, care practices, basic sowing concepts, general irrigation concepts.
+- **`MEDIUM_RISK`**: Pest control, crop disease symptoms, specific fertilizer recommendations requiring local soil/climate context.
+- **`HIGH_RISK`**: Exact pesticide/chemical dosage requests, mixing multiple chemicals (tank mixes), lethal toxicity, severe crop failure. Responses mandate consultation with a local Krishi Seva Kendra or Agriculture Extension Officer.
 
-```java
-public interface AiChatService {
-    default String generateResponse(String userQuery, PreferredLanguage language) {
-        return generateResponse(userQuery, language, null);
-    }
-    String generateResponse(String userQuery, PreferredLanguage language, String verifiedContext);
-}
-```
+### 6.3 Knowledge-Based Confidence States
+Retrieval confidence is evaluated against the MySQL knowledge base:
+- **`SUPPORTED`**: Published verified agricultural content exists and matches the crop and topic.
+- **`PARTIAL`**: Crop matched, but topic is generic or partially answered.
+- **`UNSUPPORTED`**: No verified knowledge records found in the database. Gemini is prompted to explicitly disclose that verified data is unavailable and refer to local agricultural extension officers.
 
-- **`MockAiChatServiceImpl`:** Development and offline mock returning structured placeholder advisories in EN, MR, and HI.
-- **`GeminiAiChatServiceImpl`:** Production AI using Google Gemini 1.5 Flash via REST API with grounded context injection.
+### 6.4 Off-Topic Redirection
+Deterministic keyword matching detects non-farming queries (programming, sports, politics, entertainment, crypto) and returns immediate, polite redirection in English, Marathi, or Hindi without incurring LLM latency or cost.
 
-### 6.3 Deterministic Knowledge Retrieval Strategy
-Rather than requiring complex vector databases or external RAG dependencies at this stage, retrieval is handled deterministically via MySQL:
-1. **Query Normalization:** Trims and lowercases farmer input.
-2. **Multilingual Crop Detection:** Token and alias matching across English, Marathi, and Hindi names/stems (e.g. `cotton`, `कापूस`, `कापसासाठी`, `कपास`).
-3. **Topic & Category Identification:** Maps keywords to categories (`Pest Control`, `Fertilizer Management`, `Sowing & Seed Treatment`, `Irrigation`).
-4. **Targeted DB Query:** Fetches records from `verified_agriculture_content` where `is_published = true`.
-5. **Language Prioritization & Fallback:** Prioritizes articles in the farmer's requested language. If unavailable, falls back to available language records (e.g. English) which Gemini translates and explains in the requested language.
-6. **Prompt Assembly:** Injects compact, structured verified facts before the farmer's query.
-
-### 6.4 Prompt Engineering & Safety Guardrails
-1. **Authoritative Grounding:** Gemini is strictly instructed to prefer the provided verified agriculture context as the primary source of truth.
-2. **No Hallucination Rule:** Do not contradict the verified knowledge context or invent unverified chemical dosages.
-3. **No-Knowledge Disclaimer:** If no verified records exist for the query, the AI must explicitly state that the verified knowledge base does not contain specific records for the request, provide only safe general agricultural principles if applicable, and recommend consulting a local Krishi Seva Kendra or agriculture officer.
-4. **Mandatory Language Enforcement:** Enforces exact script and language matching (`MR` in Devanagari, `HI` in Devanagari, `EN` in English).
+### 6.5 Prompt Engineering & Safety Guardrails
+1. **Information-Support Role**: The AI explicitly identifies as an *information-support tool*, not an authoritative replacement for certified agronomists.
+2. **Authoritative Grounding**: Gemini is strictly instructed to prefer the provided verified agriculture context as the primary source of truth.
+3. **Zero Hallucination on Chemicals**: Prohibits fabricating unverified chemical dosages or cocktail mixing instructions.
+4. **No-Knowledge Disclaimer**: If context is missing, the AI explicitly acknowledges that the knowledge base lacks specific records for the query.
+5. **Mandatory Language Enforcement**: Enforces exact script and language matching (`MR` in Devanagari, `HI` in Devanagari, `EN` in English).
 
 ---
 
