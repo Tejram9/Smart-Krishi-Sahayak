@@ -43,6 +43,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<ErrorResponse> handleAiServiceException(AiServiceException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("AI Service unavailable: " + ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
         ErrorResponse errorResponse = new ErrorResponse("An internal server error occurred: " + ex.getMessage());

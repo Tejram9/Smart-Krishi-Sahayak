@@ -186,21 +186,46 @@ The application natively supports **English (EN)**, **Marathi (MR)**, and **Hind
 
 ## 6. Switching AI Modes
 
-### Offline / Mock AI Mode (Default for Development)
-In `application.yml` or `.env`:
+The application supports a pluggable AI provider architecture using the `AiChatService` interface. You can easily switch between offline development mode and the live Google Gemini API.
+
+### 6.1 Offline / Mock AI Mode (Default for Development & Tests)
+In `.env` or system environment variables:
+```env
+AI_PROVIDER=mock
+```
+Or in `application.yml`:
 ```yaml
 app:
   ai:
     provider: mock
 ```
-This requires no external network connection and guarantees zero API costs during testing.
+- Requires **zero external network access** and **no API keys**.
+- Returns predictable, trilingual agricultural mock responses (`[MOCK AI]`).
+- Automatically active in automated test suites (`@ActiveProfiles("test")`).
 
-### Live AI Mode
-In `application.yml` or `.env`:
+### 6.2 Google Gemini Live AI Mode
+To use the live Google Gemini API:
+1. Obtain an API key from [Google AI Studio](https://aistudio.google.com/).
+2. Set the environment variables in your `.env` file:
+```env
+AI_PROVIDER=gemini
+GEMINI_API_KEY=AIzaSyYourActualGeminiApiKeyHere
+GEMINI_MODEL=gemini-1.5-flash
+```
+3. (Optional) Custom settings in `application.yml`:
 ```yaml
 app:
   ai:
-    provider: openai
-    api-key: ${AI_API_KEY}
+    provider: ${AI_PROVIDER:mock}
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-1.5-flash}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
+      timeout-ms: ${GEMINI_TIMEOUT_MS:15000}
 ```
-Restart the application to connect to the live LLM service.
+
+### 6.3 AI Error and Fallback Behavior
+- If `AI_PROVIDER=gemini` is set but `GEMINI_API_KEY` is missing or empty, the application throws an `AiServiceException` returning HTTP 503 (`AI Service unavailable: Gemini API key is not configured`) without leaking credentials or stack traces.
+- Network timeouts (default 15,000 ms) prevent the application from hanging on slow provider responses.
+- API keys and query parameters are stripped/masked from all error logs.
+

@@ -190,11 +190,9 @@ Every API endpoint returns a predictable envelope JSON format.
 
 ---
 
-## 5. AI Chatbot & History Endpoints (`/api/v1/chat`)
-
 ## 5. Chat Session & AI Message Endpoints (`/api/v1/chat`)
 
-> **Note:** The current implementation uses a **MOCK AI service** (`MockAiChatServiceImpl`). No external AI provider is connected in this phase. The AI response text contains `[MOCK AI]` to make this clear. Real AI integration is planned for Phase 5C.
+> **Note:** The backend supports pluggable AI providers via `app.ai.provider` (`mock` or `gemini`). In `mock` mode (default), generated responses contain `[MOCK AI]`. In `gemini` mode, live responses are generated via the Google Gemini API using an agriculture-tailored system instruction in the farmer's requested language (EN, MR, HI). Knowledge-grounded RAG context will be added in Step 5D.
 
 ### 5.1 Create Chat Session
 - **Endpoint:** `POST /api/v1/chat/sessions`
