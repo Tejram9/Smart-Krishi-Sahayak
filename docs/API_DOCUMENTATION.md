@@ -192,42 +192,146 @@ Every API endpoint returns a predictable envelope JSON format.
 
 ## 5. AI Chatbot & History Endpoints (`/api/v1/chat`)
 
-### 5.1 Send Query to AI Chatbot
-- **Endpoint:** `POST /api/v1/chat/send`
-- **Access:** Protected (`ROLE_FARMER`)
-- **Request Body (`ChatMessageRequest`):**
-```json
-{
-  "sessionId": 12,
-  "message": "द्राक्षावरील भुरी रोगावर काय उपाय करावा?",
-  "language": "MR"
-}
-```
-- **Response (`200 OK`):**
+## 5. Chat Session & AI Message Endpoints (`/api/v1/chat`)
+
+> **Note:** The current implementation uses a **MOCK AI service** (`MockAiChatServiceImpl`). No external AI provider is connected in this phase. The AI response text contains `[MOCK AI]` to make this clear. Real AI integration is planned for Phase 5C.
+
+### 5.1 Create Chat Session
+- **Endpoint:** `POST /api/v1/chat/sessions`
+- **Access:** Protected (`ROLE_FARMER`, `ROLE_ADMIN`)
+- **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+- **Request Body:** None — the authenticated user is resolved from the JWT; no userId is accepted from the client.
+- **Success Response (`201 Created`):**
 ```json
 {
   "success": true,
+  "message": "Chat session created successfully.",
   "data": {
-    "sessionId": 12,
-    "userMessage": "द्राक्षावरील भुरी रोगावर काय उपाय करावा?",
-    "aiResponse": "द्राक्षावरील भुरी (Powdery Mildew) रोगाच्या नियंत्रणासाठी:\n1. झाडाची पानांची हवा खेळती ठेवा.\n2. प्राथमिक अवस्थेत पाण्यात विरघळणारे गंधक (Sulfur 80% WP) ३ ग्रॅम प्रति लिटर पाण्यात मिसळून फवारणी करा.\n3. अधिक माहितीसाठी जवळच्या कृषी सेवा केंद्राशी संपर्क साधा.",
+    "id": 1,
+    "sessionTitle": "Chat Session - 15-Aug-2026 19:45",
     "language": "MR",
-    "timestamp": "2026-08-06T14:35:00Z"
-  }
+    "createdAt": "2026-08-15T19:45:00",
+    "updatedAt": "2026-08-15T19:45:00",
+    "messageCount": 0
+  },
+  "timestamp": "2026-08-15T19:45:00"
 }
 ```
 
-### 5.2 Get User Chat Sessions List
-- **Endpoint:** `GET /api/v1/chat/sessions`
-- **Access:** Protected (`ROLE_FARMER`)
-- **Response (`200 OK`):** Array of past chat session summaries.
+### 5.2 Send Message (and Receive Mock AI Response)
+- **Endpoint:** `POST /api/v1/chat/sessions/{sessionId}/messages`
+- **Access:** Protected (`ROLE_FARMER`, `ROLE_ADMIN`); session must belong to the authenticated user.
+- **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+- **Path Variable:** `sessionId` (Long)
+- **Request Body:**
+```json
+{
+  "message": "Which crops are best for black soil?",
+  "language": "MR"
+}
+```
+  - `message` — required, non-blank, max 2000 characters.
+  - `language` — optional (`EN`, `MR`, `HI`). Falls back to session language if omitted.
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Message sent successfully.",
+  "data": {
+    "sessionId": 1,
+    "userMessage": {
+      "id": 1,
+      "sender": "USER",
+      "message": "Which crops are best for black soil?",
+      "language": "MR",
+      "timestamp": "2026-08-15T19:46:00"
+    },
+    "aiMessage": {
+      "id": 2,
+      "sender": "AI",
+      "message": "[MOCK AI] तुमचा शेतीविषयक प्रश्न प्राप्त झाला आहे. पुढील टप्प्यात सत्यापित कृषी माहितीच्या आधारे AI उत्तर दिले जाईल. तातडीच्या मार्गदर्शनासाठी कृपया तुमच्या स्थानिक कृषी सेवा केंद्राशी संपर्क करा.",
+      "language": "MR",
+      "timestamp": "2026-08-15T19:46:00"
+    },
+    "timestamp": "2026-08-15T19:46:00"
+  },
+  "timestamp": "2026-08-15T19:46:00"
+}
+```
+- **Error Responses:**
+  - `400 Bad Request` — blank or missing message.
+  - `401 Unauthorized` — no valid JWT.
+  - `403 Forbidden` — session belongs to a different user.
+  - `404 Not Found` — session ID does not exist.
 
-### 5.3 Get Messages in Session
-- **Endpoint:** `GET /api/v1/chat/sessions/{sessionId}`
-- **Access:** Protected (`ROLE_FARMER`)
-- **Response (`200 OK`):** Full message history for specified session.
+### 5.3 List User's Chat Sessions
+- **Endpoint:** `GET /api/v1/chat/sessions`
+- **Access:** Protected — returns only sessions belonging to the authenticated user.
+- **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Sessions retrieved successfully.",
+  "data": [
+    {
+      "id": 2,
+      "sessionTitle": "Chat Session - 15-Aug-2026 19:50",
+      "language": "MR",
+      "createdAt": "2026-08-15T19:50:00",
+      "updatedAt": "2026-08-15T19:51:00",
+      "messageCount": 2
+    },
+    {
+      "id": 1,
+      "sessionTitle": "Chat Session - 15-Aug-2026 19:45",
+      "language": "MR",
+      "createdAt": "2026-08-15T19:45:00",
+      "updatedAt": "2026-08-15T19:46:00",
+      "messageCount": 2
+    }
+  ],
+  "timestamp": "2026-08-15T19:51:00"
+}
+```
+
+### 5.4 Get Messages in Session
+- **Endpoint:** `GET /api/v1/chat/sessions/{sessionId}/messages`
+- **Access:** Protected — returns messages only when the session belongs to the authenticated user.
+- **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+- **Path Variable:** `sessionId` (Long)
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Messages retrieved successfully.",
+  "data": [
+    {
+      "id": 1,
+      "sender": "USER",
+      "message": "Which crops are best for black soil?",
+      "language": "MR",
+      "timestamp": "2026-08-15T19:46:00"
+    },
+    {
+      "id": 2,
+      "sender": "AI",
+      "message": "[MOCK AI] तुमचा शेतीविषयक प्रश्न प्राप्त झाला आहे...",
+      "language": "MR",
+      "timestamp": "2026-08-15T19:46:00"
+    }
+  ],
+  "timestamp": "2026-08-15T19:51:00"
+}
+```
+- **Error Responses:**
+  - `401 Unauthorized` — no valid JWT.
+  - `403 Forbidden` — session belongs to a different user.
+  - `404 Not Found` — session ID does not exist.
 
 ---
+
+
 
 ## 6. Verified Crop Knowledge Base Endpoints (`/api/v1/crops`)
 
