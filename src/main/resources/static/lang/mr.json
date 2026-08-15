@@ -164,5 +164,10 @@
   "chat_error_failed_load": "चॅट इतिहास लोड करता आला नाही.",
   "chat_error_session_create": "नवीन चॅट सत्र तयार करता आले नाही.",
   "chat_mobile_toggle_history": "चॅट इतिहास",
-  "chat_back_to_dashboard": "डॅशबोर्डवर परत जा"
+  "chat_back_to_dashboard": "डॅशबोर्डवर परत जा",
+  "chat_search_placeholder": "संभाषणे शोधा...",
+  "chat_no_search_results": "कोणतीही जुळणारी संभाषणे आढळली नाहीत.",
+  "chat_retry": "पुन्हा प्रयत्न करा",
+  "chat_loading_messages": "संभाषण लोड होत आहे...",
+  "chat_start_new_conversation": "नवीन चॅट सुरू करा"
 }

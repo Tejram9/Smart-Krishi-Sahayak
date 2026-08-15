@@ -239,18 +239,23 @@ app:
 - Off-topic queries (coding, sports, politics) receive polite, immediate localized redirects in English, Marathi, or Hindi without incurring LLM costs or latency.
 - High-risk queries (chemical mixtures, exact pesticide dosages) automatically append mandatory local Krishi Seva Kendra / Agriculture Officer referral disclaimers to ensure farmer safety.
 
-### 6.6 Farmer Chatbot Web Interface (Step 5F)
+### 6.6 Farmer Chatbot Web Interface & Chat History UX (Steps 5F & 5G)
 - Accessible at `/chatbot.html` or directly from the Farmer Dashboard card.
 - **Multilingual Support**: Supports seamless language switching (`EN`, `MR`, `HI`) via the top navigation dropdown.
-- **Session Flow**:
-  - Automatically loads previous chat sessions via `GET /api/v1/chat/sessions`.
-  - Supports creating new sessions via "+ New Chat" button or upon sending the first message.
-  - Clicking any session in the sidebar retrieves message history via `GET /api/v1/chat/sessions/{sessionId}/messages`.
+- **Session Flow & History UX**:
+  - Automatically loads previous chat sessions via `GET /api/v1/chat/sessions` with most recent updated first.
+  - **Active Session Persistence**: Restores active conversation on page reload using `sessionStorage` with server-side validation.
+  - **Deferred Session Creation**: "+ New Chat" resets the interface to a welcome screen; backend session is created only when the first question is sent.
+  - **Smart Title Generation**: Automatically names sessions from the farmer's initial inquiry rather than generic timestamps.
+  - **Real-Time Client Search**: Real-time filtering by conversation title and language in the sidebar.
+  - **Race Condition Prevention**: Prevents out-of-order message rendering during rapid session switching.
 - **Interactive Features**:
+  - Shimmer skeleton loaders during network fetches and retry buttons on failures.
   - Welcome screen with clickable prompt chips in English, Marathi, and Hindi.
   - Animated typing/thinking indicator while waiting for server response.
   - Distinct message styling with formatted bullet points, line breaks, and highlighted expert referral notice cards.
   - Mobile responsive drawer with toggle button and backdrop overlay.
+
 
 
 

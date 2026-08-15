@@ -100,6 +100,15 @@ public class ChatServiceImpl implements ChatService {
         ChatMessage userMessage = new ChatMessage(session, MessageSender.USER, request.getMessage(), language);
         ChatMessage savedUserMessage = chatMessageRepository.save(userMessage);
 
+        // Auto-update generic title to a concise title based on first query
+        if (session.getSessionTitle() == null || session.getSessionTitle().startsWith("Chat Session -")) {
+            String msg = request.getMessage().trim().replaceAll("\\r?\\n", " ");
+            String displayTitle = msg.length() > 50 ? msg.substring(0, 47).trim() + "..." : msg;
+            session.setSessionTitle(displayTitle);
+            session.setUpdatedAt(LocalDateTime.now());
+            chatSessionRepository.save(session);
+        }
+
         // 1. Retrieve grounded agriculture context from verified knowledge base
         String verifiedContext = agricultureKnowledgeService.buildGroundedContext(request.getMessage(), language);
 

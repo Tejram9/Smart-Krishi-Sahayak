@@ -678,3 +678,122 @@
     margin: 1rem auto;
   }
 }
+
+/* ==========================================================================
+   Step 5G Chat History Polish Styles
+   ========================================================================== */
+
+/* Search bar inside sidebar */
+.chat-search-container {
+  padding: 0.65rem 0.85rem 0.35rem 0.85rem;
+  background: #fafbfa;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.chat-search-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.chat-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.chat-search-input {
+  width: 100%;
+  padding: 0.4rem 0.75rem 0.4rem 2.1rem;
+  font-size: 0.82rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  color: var(--text-dark);
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.chat-search-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+
+.session-item:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Skeleton Loading Animation */
+.skeleton-box {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-session-item {
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-line {
+  height: 12px;
+}
+
+.skeleton-line-title {
+  width: 75%;
+  height: 14px;
+}
+
+.skeleton-line-meta {
+  width: 45%;
+  height: 10px;
+}
+
+/* Retry Button */
+.btn-retry-chat {
+  background: #ffffff;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: var(--transition-fast);
+}
+
+.btn-retry-chat:hover {
+  background: var(--primary-light);
+}
+
+/* Empty Sessions View */
+.empty-sessions-box {
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-sessions-icon {
+  font-size: 2.2rem;
+  color: #c8e6c9;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+

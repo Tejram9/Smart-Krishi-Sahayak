@@ -164,5 +164,10 @@
   "chat_error_failed_load": "Failed to load chat history.",
   "chat_error_session_create": "Failed to create a new chat session.",
   "chat_mobile_toggle_history": "Chat History",
-  "chat_back_to_dashboard": "Back to Dashboard"
+  "chat_back_to_dashboard": "Back to Dashboard",
+  "chat_search_placeholder": "Search conversations...",
+  "chat_no_search_results": "No conversations match your search.",
+  "chat_retry": "Retry",
+  "chat_loading_messages": "Loading conversation...",
+  "chat_start_new_conversation": "Start New Chat"
 }

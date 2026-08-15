@@ -1,18 +1,24 @@
 /**
- * Smart Krishi Sahayak - Farmer Chatbot Controller
+ * Smart Krishi Sahayak - Farmer Chatbot Controller (Step 5G Polished)
  *
- * Connects the web interface with the backend chat APIs:
- * - GET  /api/v1/chat/sessions
- * - POST /api/v1/chat/sessions
- * - GET  /api/v1/chat/sessions/{sessionId}/messages
- * - POST /api/v1/chat/sessions/{sessionId}/messages
+ * Implements a rich messaging UX:
+ * - Active session persistence across reloads (sessionStorage)
+ * - Deferred session creation (created only when first message is sent)
+ * - Real-time client-side session search & filtering
+ * - Shimmer skeleton loaders & graceful retry handlers
+ * - Race-condition guard for rapid session switching
+ * - Polished empty states & multilingual prompt chips
+ * - Standardized expert referral alert cards
  */
 document.addEventListener('DOMContentLoaded', () => {
   if (!Auth.requireAuthentication()) return;
 
+  const ACTIVE_SESSION_STORAGE_KEY = 'sks_active_chat_session_id';
+
   // DOM Elements
   const sessionsList = document.getElementById('sessionsList');
   const sessionCountBadge = document.getElementById('sessionCountBadge');
+  const sessionSearchInput = document.getElementById('sessionSearchInput');
   const messagesContainer = document.getElementById('messagesContainer');
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
@@ -27,10 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Application State
   let sessions = [];
+  let filteredSessions = [];
   let currentSessionId = null;
   let isSending = false;
+  let latestMessageRequestId = 0;
 
-  // Initialize
+  // Initialize Chatbot App
   init();
 
   function init() {
@@ -48,8 +56,16 @@ document.addEventListener('DOMContentLoaded', () => {
       sidebarBackdrop.addEventListener('click', closeSidebar);
     }
 
+    // Client-side search filter
+    if (sessionSearchInput) {
+      sessionSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        filterSessions(query);
+      });
+    }
+
+    // Auto-expanding input & counter
     if (messageInput) {
-      // Auto-expand and character counter
       messageInput.addEventListener('input', () => {
         messageInput.style.height = 'auto';
         messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
@@ -66,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Listen for language selector changes to sync UI
+    // Language switcher synchronization
     document.addEventListener('change', (e) => {
       if (e.target && e.target.classList.contains('lang-select')) {
         updateLanguageBadge();
@@ -76,7 +92,30 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Load user's chat sessions
+    // Keyboard navigation on sessions list
+    if (sessionsList) {
+      sessionsList.addEventListener('keydown', (e) => {
+        const items = Array.from(sessionsList.querySelectorAll('.session-item'));
+        const currentIndex = items.indexOf(document.activeElement);
+        if (currentIndex === -1) return;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = items[currentIndex + 1] || items[0];
+          next.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = items[currentIndex - 1] || items[items.length - 1];
+          prev.focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const id = Number(document.activeElement.dataset.sessionId);
+          if (id) selectSession(id);
+        }
+      });
+    }
+
+    // Load initial sessions
     loadSessions();
   }
 
@@ -102,18 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
    * Load all chat sessions from API
    */
   async function loadSessions() {
-    try {
-      if (sessionsList) {
-        sessionsList.innerHTML = `
-          <div class="text-center py-4 text-muted">
-            <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-            <p class="mt-2 mb-0" style="font-size: 0.8rem;">${I18n.getTranslation('common_loading')}</p>
-          </div>
-        `;
-      }
+    renderSessionsSkeleton();
 
+    try {
       const response = await Api.get('/api/v1/chat/sessions', true);
       sessions = (response && response.success && Array.isArray(response.data)) ? response.data : [];
+      filteredSessions = [...sessions];
 
       if (sessionCountBadge) {
         sessionCountBadge.textContent = sessions.length;
@@ -122,25 +155,40 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSessionsList();
 
       if (sessions.length > 0) {
-        // Select the most recent session
-        selectSession(sessions[0].id);
+        // Check if there is a saved active session from sessionStorage
+        const savedId = Number(sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY));
+        const matchedSession = sessions.find(s => s.id === savedId);
+
+        if (matchedSession) {
+          selectSession(matchedSession.id);
+        } else {
+          // Select most recently updated session
+          selectSession(sessions[0].id);
+        }
       } else {
         // No sessions yet -> show welcome screen
         currentSessionId = null;
+        sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
         renderWelcomeScreen();
       }
     } catch (error) {
       console.error('Failed to load chat sessions:', error);
-      if (sessionsList) {
-        sessionsList.innerHTML = `
-          <div class="p-3 text-center text-muted" style="font-size: 0.85rem;">
-            <i class="bi bi-exclamation-circle text-danger mb-1" style="font-size: 1.2rem; display: block;"></i>
-            ${I18n.getTranslation('chat_error_failed_load')}
-          </div>
-        `;
-      }
+      renderSessionsError(error);
       renderWelcomeScreen();
     }
+  }
+
+  function filterSessions(query) {
+    if (!query) {
+      filteredSessions = [...sessions];
+    } else {
+      filteredSessions = sessions.filter(s => {
+        const title = (s.sessionTitle || '').toLowerCase();
+        const lang = (s.language || '').toLowerCase();
+        return title.includes(query) || lang.includes(query);
+      });
+    }
+    renderSessionsList();
   }
 
   /**
@@ -151,15 +199,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (sessions.length === 0) {
       sessionsList.innerHTML = `
-        <div class="p-3 text-center text-muted" style="font-size: 0.85rem;">
-          <i class="bi bi-chat-square-dots mb-2" style="font-size: 1.4rem; display: block; opacity: 0.6;"></i>
-          ${I18n.getTranslation('chat_no_history')}
+        <div class="empty-sessions-box">
+          <i class="bi bi-chat-square-dots empty-sessions-icon"></i>
+          <p class="mb-2 fw-semibold" style="font-size: 0.9rem;">${I18n.getTranslation('chat_no_history')}</p>
+          <button class="btn btn-sm btn-outline-success mt-2" onclick="document.getElementById('newChatBtn').click()">
+            <i class="bi bi-plus-lg"></i> ${I18n.getTranslation('chat_start_new_conversation')}
+          </button>
         </div>
       `;
       return;
     }
 
-    sessionsList.innerHTML = sessions.map(session => {
+    if (filteredSessions.length === 0) {
+      sessionsList.innerHTML = `
+        <div class="p-3 text-center text-muted" style="font-size: 0.85rem;">
+          <i class="bi bi-search mb-1" style="font-size: 1.2rem; display: block; opacity: 0.6;"></i>
+          ${I18n.getTranslation('chat_no_search_results')}
+        </div>
+      `;
+      return;
+    }
+
+    sessionsList.innerHTML = filteredSessions.map(session => {
       const isActive = session.id === currentSessionId;
       const formattedDate = formatDate(session.updatedAt || session.createdAt);
       const title = Utils.escapeHtml(session.sessionTitle || I18n.getTranslation('chat_session_default_title'));
@@ -167,7 +228,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const msgCount = session.messageCount !== undefined ? session.messageCount : '';
 
       return `
-        <div class="session-item ${isActive ? 'active' : ''}" data-session-id="${session.id}" role="button" tabindex="0">
+        <div class="session-item ${isActive ? 'active' : ''}"
+             data-session-id="${session.id}"
+             role="option"
+             aria-selected="${isActive ? 'true' : 'false'}"
+             tabindex="0">
           <div class="session-item-title">${title}</div>
           <div class="session-item-meta">
             <span><i class="bi bi-clock"></i> ${formattedDate}</span>
@@ -193,7 +258,10 @@ document.addEventListener('DOMContentLoaded', () => {
    * Select a session and load its messages
    */
   async function selectSession(sessionId) {
+    if (isSending) return; // Do not interrupt in-flight message send
+
     currentSessionId = sessionId;
+    sessionStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, sessionId);
     closeSidebar();
     renderSessionsList();
 
@@ -202,17 +270,15 @@ document.addEventListener('DOMContentLoaded', () => {
       currentSessionTitle.textContent = selectedSession.sessionTitle || I18n.getTranslation('chat_page_title');
     }
 
-    try {
-      if (messagesContainer) {
-        messagesContainer.innerHTML = `
-          <div class="text-center py-5 text-muted">
-            <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-            <p class="mt-2" style="font-size: 0.85rem;">${I18n.getTranslation('common_loading')}</p>
-          </div>
-        `;
-      }
+    const thisRequestId = ++latestMessageRequestId;
+    renderMessagesSkeleton();
 
+    try {
       const response = await Api.get(`/api/v1/chat/sessions/${sessionId}/messages`, true);
+
+      // Guard against race conditions if user switched sessions rapidly
+      if (thisRequestId !== latestMessageRequestId) return;
+
       const messages = (response && response.success && Array.isArray(response.data)) ? response.data : [];
 
       if (messages.length === 0) {
@@ -221,21 +287,26 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMessages(messages);
       }
     } catch (error) {
+      if (thisRequestId !== latestMessageRequestId) return;
       console.error('Failed to load session messages:', error);
-      Utils.showToast(error.message || I18n.getTranslation('chat_error_failed_load'), 'error');
-      renderWelcomeScreen();
+      renderMessagesError(sessionId, error);
     }
   }
 
   /**
-   * Handle "+ New Chat" button click
+   * Handle "+ New Chat" button click (Deferred session creation)
    */
   function handleNewChat() {
+    if (isSending) return;
+
     closeSidebar();
     currentSessionId = null;
+    sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+
     if (currentSessionTitle) {
       currentSessionTitle.textContent = I18n.getTranslation('chat_page_title');
     }
+
     renderSessionsList();
     renderWelcomeScreen();
     if (messageInput) messageInput.focus();
@@ -316,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!messagesContainer) return;
     messagesContainer.innerHTML = '';
     messages.forEach(msg => {
-      appendMessage(msg.sender, msg.message, msg.timestamp || msg.createdAt);
+      appendMessage(msg.sender, msg.message || msg.messageText, msg.timestamp || msg.createdAt);
     });
     scrollToBottom();
   }
@@ -380,7 +451,6 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
-      // Check if this line starts an expert referral notice
       const isReferralLine = referralKeywords.some(kw => line.toLowerCase().startsWith(kw) || line.toLowerCase().includes(kw));
 
       if (isReferralLine && !isReferralBlock && i >= lines.length - 3) {
@@ -455,8 +525,6 @@ document.addEventListener('DOMContentLoaded', () => {
    */
   function showTypingIndicator() {
     if (!messagesContainer) return;
-
-    // Remove any existing indicator
     hideTypingIndicator();
 
     const indicatorRow = document.createElement('div');
@@ -516,7 +584,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const sessionRes = await Api.post('/api/v1/chat/sessions', null, true);
         if (sessionRes && sessionRes.success && sessionRes.data) {
           currentSessionId = sessionRes.data.id;
+          sessionStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, currentSessionId);
           sessions.unshift(sessionRes.data);
+          filteredSessions = [...sessions];
           if (sessionCountBadge) sessionCountBadge.textContent = sessions.length;
           renderSessionsList();
           if (currentSessionTitle) {
@@ -542,11 +612,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const aiMsg = response.data.aiMessage;
         appendMessage('AI', aiMsg.message, aiMsg.timestamp || new Date().toISOString());
 
-        // Update session item in list
+        // Update session item in list and title if first message
         const s = sessions.find(item => item.id === currentSessionId);
         if (s) {
           s.updatedAt = new Date().toISOString();
           if (s.messageCount !== undefined) s.messageCount += 2;
+          if (s.sessionTitle && s.sessionTitle.startsWith('Chat Session -')) {
+            const shortTitle = text.length > 50 ? text.substring(0, 47) + '...' : text;
+            s.sessionTitle = shortTitle;
+            if (currentSessionTitle) currentSessionTitle.textContent = shortTitle;
+          }
           renderSessionsList();
         }
       } else {
@@ -587,6 +662,88 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sendBtn) sendBtn.disabled = false;
       if (messageInput) messageInput.focus();
     }
+  }
+
+  /**
+   * Shimmer skeleton for loading sessions
+   */
+  function renderSessionsSkeleton() {
+    if (!sessionsList) return;
+    sessionsList.innerHTML = `
+      <div class="skeleton-session-item">
+        <div class="skeleton-box skeleton-line skeleton-line-title"></div>
+        <div class="skeleton-box skeleton-line skeleton-line-meta"></div>
+      </div>
+      <div class="skeleton-session-item">
+        <div class="skeleton-box skeleton-line skeleton-line-title"></div>
+        <div class="skeleton-box skeleton-line skeleton-line-meta"></div>
+      </div>
+      <div class="skeleton-session-item">
+        <div class="skeleton-box skeleton-line skeleton-line-title"></div>
+        <div class="skeleton-box skeleton-line skeleton-line-meta"></div>
+      </div>
+    `;
+  }
+
+  /**
+   * Shimmer skeleton for loading messages
+   */
+  function renderMessagesSkeleton() {
+    if (!messagesContainer) return;
+    messagesContainer.innerHTML = `
+      <div class="message-row message-row-ai">
+        <div class="message-avatar message-avatar-ai"><i class="bi bi-robot"></i></div>
+        <div class="message-content-wrapper" style="width: 60%;">
+          <div class="skeleton-session-item" style="background: white; border: 1px solid var(--border-color);">
+            <div class="skeleton-box skeleton-line" style="width: 90%; height: 14px;"></div>
+            <div class="skeleton-box skeleton-line" style="width: 70%; height: 14px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center py-2 text-muted" style="font-size: 0.82rem;">
+        <span class="spinner-border spinner-border-sm text-success me-1"></span>
+        ${I18n.getTranslation('chat_loading_messages')}
+      </div>
+    `;
+  }
+
+  /**
+   * Error state for sessions loading failure
+   */
+  function renderSessionsError(error) {
+    if (!sessionsList) return;
+    sessionsList.innerHTML = `
+      <div class="p-3 text-center text-muted" style="font-size: 0.85rem;">
+        <i class="bi bi-exclamation-circle text-danger mb-2" style="font-size: 1.4rem; display: block;"></i>
+        <p class="mb-2">${I18n.getTranslation('chat_error_failed_load')}</p>
+        <button id="retrySessionsBtn" class="btn-retry-chat">
+          <i class="bi bi-arrow-clockwise"></i> ${I18n.getTranslation('chat_retry')}
+        </button>
+      </div>
+    `;
+
+    const retryBtn = document.getElementById('retrySessionsBtn');
+    if (retryBtn) retryBtn.addEventListener('click', loadSessions);
+  }
+
+  /**
+   * Error state for messages loading failure
+   */
+  function renderMessagesError(sessionId, error) {
+    if (!messagesContainer) return;
+    messagesContainer.innerHTML = `
+      <div class="p-5 text-center text-muted">
+        <i class="bi bi-exclamation-triangle text-danger mb-2" style="font-size: 2rem; display: block;"></i>
+        <h4 class="text-dark fw-bold mb-2">${I18n.getTranslation('chat_error_failed_load')}</h4>
+        <p class="text-muted mb-3" style="font-size: 0.9rem;">${Utils.escapeHtml(error.message || I18n.getTranslation('crops_error_desc'))}</p>
+        <button id="retryMessagesBtn" class="btn-retry-chat">
+          <i class="bi bi-arrow-clockwise"></i> ${I18n.getTranslation('chat_retry')}
+        </button>
+      </div>
+    `;
+
+    const retryBtn = document.getElementById('retryMessagesBtn');
+    if (retryBtn) retryBtn.addEventListener('click', () => selectSession(sessionId));
   }
 
   function scrollToBottom() {
