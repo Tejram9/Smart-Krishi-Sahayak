@@ -42,7 +42,6 @@ Every API endpoint returns a predictable envelope JSON format.
   "timestamp": "2026-08-06T14:30:00Z"
 }
 ```
-
 ---
 
 ## 3. Authentication & User Management Endpoints (`/api/v1/auth`)
@@ -419,6 +418,61 @@ Every API endpoint returns a predictable envelope JSON format.
   "timestamp": "2026-08-15T15:51:09"
 }
 ```
+
+---
+
+## 6. Farmer Profile & My Farm Endpoints (`/api/v1/farmer/profile`)
+
+### 6.1 Get Authenticated Farmer Profile
+- **Endpoint:** `GET /api/v1/farmer/profile`
+- **Access:** Protected (Authenticated Farmer)
+- **Headers:** `Authorization: Bearer <JWT>`
+- **Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Farmer profile fetched successfully.",
+  "data": {
+    "userId": 2,
+    "fullName": "विष्णू पाटील",
+    "mobileNumber": "9811223344",
+    "email": "vishnu.patil@example.com",
+    "preferredLanguage": "MR",
+    "role": "ROLE_FARMER",
+    "state": "Maharashtra",
+    "district": "Nashik",
+    "taluka": "Niphad",
+    "village": "Pimpalgaon",
+    "landSizeAcres": 5.5,
+    "primaryCrops": "कापूस, सोयाबीन",
+    "soilType": "काळी कसदार",
+    "updatedAt": "2026-08-16T01:14:00"
+  },
+  "timestamp": "2026-08-16T01:14:00"
+}
+```
+
+### 6.2 Update Authenticated Farmer Profile
+- **Endpoint:** `PUT /api/v1/farmer/profile`
+- **Access:** Protected (Authenticated Farmer)
+- **Headers:** `Authorization: Bearer <JWT>`, `Content-Type: application/json`
+- **Request Body (`FarmerProfileUpdateRequest`):**
+```json
+{
+  "fullName": "विष्णू नारायण पाटील",
+  "email": "vishnu.updated@example.com",
+  "preferredLanguage": "MR",
+  "state": "Maharashtra",
+  "district": "Nashik",
+  "taluka": "दिंडोरी",
+  "village": "वणी",
+  "landSizeAcres": 7.25,
+  "primaryCrops": "द्राक्ष, कांदा, टोमॅटो",
+  "soilType": "काळी कसदार"
+}
+```
+- **Success Response (`200 OK`):** Returns updated `FarmerProfileResponse`.
+- **Validation Errors (`400 Bad Request`):** Invalid land size, malformed email, or duplicate email address.
 
 ---
 

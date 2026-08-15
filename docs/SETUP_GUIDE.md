@@ -75,13 +75,11 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
     "password": "FarmerPassword123"
   }'
 ```
-
 ### 4.3 Access Protected `/me` Profile Endpoint
 ```bash
 curl -X GET http://localhost:8080/api/v1/auth/me \
   -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
 ```
-
 ---
 
 ## 3. Database Initialization (MySQL)
@@ -223,7 +221,6 @@ app:
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
       timeout-ms: ${GEMINI_TIMEOUT_MS:15000}
 ```
-
 ### 6.3 AI Error and Fallback Behavior
 - If `AI_PROVIDER=gemini` is set but `GEMINI_API_KEY` is missing or empty, the application throws an `AiServiceException` returning HTTP 503 (`AI Service unavailable: Gemini API key is not configured`) without leaking credentials or stack traces.
 - Network timeouts (default 15,000 ms) prevent the application from hanging on slow provider responses.
@@ -233,7 +230,6 @@ app:
 - Regardless of whether `AI_PROVIDER` is set to `mock` or `gemini`, `AgricultureKnowledgeService` deterministically scans the farmer query for crop names (English, Marathi, Hindi) and agricultural categories (Pest Control, Fertilizer Management, Sowing, Irrigation).
 - Factual advisory records from `verified_agriculture_content` with `is_published = true` are injected as structured context into Gemini prompt calls.
 - If no verified content is found for a specific crop/topic, Gemini explicitly provides a no-knowledge disclosure and advises contacting a local Krishi Seva Kendra, eliminating ungrounded hallucinations.
-
 ### 6.5 Safety & Expert Referral Layer (Step 5E)
 - Deterministic safety classification (`AgricultureSafetyService`) assigns each query to a risk tier: `LOW_RISK`, `MEDIUM_RISK`, or `HIGH_RISK`.
 - Off-topic queries (coding, sports, politics) receive polite, immediate localized redirects in English, Marathi, or Hindi without incurring LLM costs or latency.
@@ -256,7 +252,15 @@ app:
   - Distinct message styling with formatted bullet points, line breaks, and highlighted expert referral notice cards.
   - Mobile responsive drawer with toggle button and backdrop overlay.
 
-
-
-
+### 6.7 My Farm / Farmer Profile Module (Phase 6)
+- **Endpoint URLs**: `GET /api/v1/farmer/profile`, `PUT /api/v1/farmer/profile`
+- **Farmer Interface**: Accessible via `/my-farm.html` and directly from the Farmer Dashboard card.
+- **Strict User Ownership**: Profile retrieval and updates are authoritatively bound to the authenticated JWT principal.
+- **Features**:
+  - Personal details (Full Name, read-only Mobile Number, Email, Preferred Language).
+  - Farm location (State, District, Taluka, Village).
+  - Land and soil details (Land Size in Acres with range validation, Soil Type).
+  - Primary crops selection with visual tag badges.
+  - View mode vs interactive Edit mode with live client and server validation.
+  - Full multilingual support in English, Marathi (मराठी), and Hindi (हिंदी).
 

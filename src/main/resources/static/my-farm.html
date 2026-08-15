@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="My Farm - Smart Krishi Sahayak farmer profile and farm management.">
+  <title>My Farm - Smart Krishi Sahayak</title>
+  
+  <!-- Bootstrap 5 CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <!-- Google Fonts (Inter & Noto Sans Devanagari) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top py-2" aria-label="Main Navigation">
+    <div class="container-fluid px-3 px-md-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="/farmer-dashboard.html">
+        <i class="bi bi-tree-fill text-success fs-4"></i>
+        <span class="fw-bold fs-5 text-success">Smart Krishi Sahayak</span>
+      </a>
+
+      <div class="d-flex align-items-center gap-2">
+        <a href="/farmer-dashboard.html" class="btn btn-outline-secondary btn-sm" aria-label="Back to Dashboard">
+          <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline" data-i18n="chat_back_to_dashboard">Back to Dashboard</span>
+        </a>
+        <a href="/chatbot.html" class="btn btn-outline-success btn-sm" aria-label="Chatbot">
+          <i class="bi bi-robot"></i> <span class="d-none d-md-inline" data-i18n="nav_chatbot">Chatbot</span>
+        </a>
+        <select id="languageSelect" class="form-select form-select-sm lang-select" style="width: auto;" aria-label="Select Language">
+          <option value="EN">English (EN)</option>
+          <option value="MR">मराठी (MR)</option>
+          <option value="HI">हिंदी (HI)</option>
+        </select>
+        <button id="logoutBtn" class="btn-logout btn-sm" aria-label="Logout">
+          <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline" data-i18n="nav_logout">Logout</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="container py-4" style="max-width: 960px;">
+
+    <!-- Banner Header -->
+    <div class="farm-header-banner">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <span class="badge bg-light text-success fw-bold px-3 py-1 mb-2 rounded-pill" data-i18n="farm_badge_registered">Registered Farm</span>
+          <h1 class="h3 fw-bold mb-1" id="bannerFarmerName" data-i18n="farm_page_title">My Farm Profile</h1>
+          <p class="mb-0 text-white-50" data-i18n="farm_page_subtitle">View and manage your land size, soil type, primary crops, and farm location</p>
+        </div>
+        <div id="viewModeActionBar">
+          <button id="editProfileBtn" class="btn btn-light text-success fw-bold px-4 py-2" type="button">
+            <i class="bi bi-pencil-square"></i> <span data-i18n="farm_btn_edit">Edit Profile</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert / Toast Container -->
+    <div id="feedbackAlert" class="alert d-none mb-4" role="alert"></div>
+
+    <!-- Loading Spinner -->
+    <div id="farmLoadingState" class="text-center py-5">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="mt-3 text-muted" data-i18n="farm_loading">Loading farm profile...</p>
+    </div>
+
+    <!-- Farm Profile Form -->
+    <form id="farmProfileForm" class="d-none" onsubmit="return false;">
+
+      <!-- 1. Personal Information Card -->
+      <section class="farm-card">
+        <div class="farm-card-header">
+          <h5><i class="bi bi-person-badge-fill text-success"></i> <span data-i18n="farm_sec_personal">Personal Information</span></h5>
+        </div>
+        <div class="farm-card-body">
+          <!-- Read-Only View -->
+          <div id="personalViewGrid" class="farm-info-grid">
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_full_name">Full Name</span>
+              <span class="farm-info-value" id="viewFullName">-</span>
+            </div>
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_mobile_number">Mobile Number</span>
+              <span class="farm-info-value text-muted" id="viewMobileNumber">-</span>
+            </div>
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_email">Email Address</span>
+              <span class="farm-info-value" id="viewEmail">-</span>
+            </div>
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_preferred_language">Preferred Language</span>
+              <span class="farm-info-value" id="viewPreferredLanguage">-</span>
+            </div>
+          </div>
+
+          <!-- Edit Inputs -->
+          <div id="personalEditGrid" class="row g-3 d-none">
+            <div class="col-md-6">
+              <label for="inputFullName" class="form-label fw-semibold" data-i18n="reg_full_name">Full Name</label>
+              <input type="text" class="form-control" id="inputFullName" maxlength="100" required>
+            </div>
+            <div class="col-md-6">
+              <label for="inputMobileNumber" class="form-label fw-semibold" data-i18n="reg_mobile_number">Mobile Number</label>
+              <input type="text" class="form-control bg-light" id="inputMobileNumber" readonly disabled>
+              <small class="text-muted" data-i18n="farm_mobile_read_only_hint">Mobile number is linked to your account and cannot be modified.</small>
+            </div>
+            <div class="col-md-6">
+              <label for="inputEmail" class="form-label fw-semibold" data-i18n="reg_email">Email Address</label>
+              <input type="email" class="form-control" id="inputEmail" maxlength="100">
+            </div>
+            <div class="col-md-6">
+              <label for="inputPreferredLanguage" class="form-label fw-semibold" data-i18n="reg_preferred_language">Preferred Language</label>
+              <select class="form-select" id="inputPreferredLanguage">
+                <option value="MR">मराठी (MR)</option>
+                <option value="HI">हिंदी (HI)</option>
+                <option value="EN">English (EN)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Farm Location Card -->
+      <section class="farm-card">
+        <div class="farm-card-header">
+          <h5><i class="bi bi-geo-alt-fill text-success"></i> <span data-i18n="farm_sec_location">Farm Location</span></h5>
+        </div>
+        <div class="farm-card-body">
+          <!-- Read-Only View -->
+          <div id="locationViewGrid" class="farm-info-grid">
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_state">State</span>
+              <span class="farm-info-value" id="viewState">Maharashtra</span>
+            </div>
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_district">District</span>
+              <span class="farm-info-value" id="viewDistrict">-</span>
+            </div>
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_taluka">Taluka / Tehsil</span>
+              <span class="farm-info-value" id="viewTaluka">-</span>
+            </div>
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_village">Village / Town</span>
+              <span class="farm-info-value" id="viewVillage">-</span>
+            </div>
+          </div>
+
+          <!-- Edit Inputs -->
+          <div id="locationEditGrid" class="row g-3 d-none">
+            <div class="col-md-6">
+              <label for="inputState" class="form-label fw-semibold" data-i18n="reg_state">State</label>
+              <input type="text" class="form-control" id="inputState" maxlength="50" required value="Maharashtra">
+            </div>
+            <div class="col-md-6">
+              <label for="inputDistrict" class="form-label fw-semibold" data-i18n="reg_district">District</label>
+              <input type="text" class="form-control" id="inputDistrict" maxlength="50" required>
+            </div>
+            <div class="col-md-6">
+              <label for="inputTaluka" class="form-label fw-semibold" data-i18n="reg_taluka">Taluka / Tehsil</label>
+              <input type="text" class="form-control" id="inputTaluka" maxlength="50">
+            </div>
+            <div class="col-md-6">
+              <label for="inputVillage" class="form-label fw-semibold" data-i18n="reg_village">Village / Town</label>
+              <input type="text" class="form-control" id="inputVillage" maxlength="50">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Land & Soil Details Card -->
+      <section class="farm-card">
+        <div class="farm-card-header">
+          <h5><i class="bi bi-layers-fill text-success"></i> <span data-i18n="farm_sec_land_soil">Land & Soil Details</span></h5>
+        </div>
+        <div class="farm-card-body">
+          <!-- Read-Only View -->
+          <div id="landSoilViewGrid" class="farm-info-grid">
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_land_size">Land Size</span>
+              <span class="farm-info-value" id="viewLandSize">-</span>
+            </div>
+            <div class="farm-info-item">
+              <span class="farm-info-label" data-i18n="reg_soil_type">Soil Type</span>
+              <span class="farm-info-value" id="viewSoilType">-</span>
+            </div>
+          </div>
+
+          <!-- Edit Inputs -->
+          <div id="landSoilEditGrid" class="row g-3 d-none">
+            <div class="col-md-6">
+              <label for="inputLandSize" class="form-label fw-semibold" data-i18n="reg_land_size">Land Size (in Acres)</label>
+              <div class="input-group">
+                <input type="number" step="0.01" min="0" max="10000" class="form-control" id="inputLandSize" placeholder="e.g. 4.5">
+                <span class="input-group-text" data-i18n="farm_land_acres_suffix">Acres</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="inputSoilType" class="form-label fw-semibold" data-i18n="reg_soil_type">Soil Type</label>
+              <input type="text" class="form-control" id="inputSoilType" maxlength="50" placeholder="e.g. Black Soil, Alluvial, Red Soil">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Current Primary Crops Card -->
+      <section class="farm-card">
+        <div class="farm-card-header">
+          <h5><i class="bi bi-flower1 text-success"></i> <span data-i18n="farm_sec_crops">Current Primary Crops</span></h5>
+        </div>
+        <div class="farm-card-body">
+          <!-- Read-Only View -->
+          <div id="cropsViewContainer">
+            <div id="viewCropsTagList" class="crop-tag-list">
+              <!-- Rendered as badges -->
+            </div>
+          </div>
+
+          <!-- Edit Inputs -->
+          <div id="cropsEditContainer" class="d-none">
+            <label for="inputPrimaryCrops" class="form-label fw-semibold" data-i18n="reg_primary_crops">Primary Crops (comma separated)</label>
+            <input type="text" class="form-control" id="inputPrimaryCrops" maxlength="255" placeholder="e.g. Cotton, Soybean, Wheat, Sugarcane">
+            <small class="text-muted mt-1 d-block" data-i18n="farm_edit_notice">Keep your farm details updated to receive accurate crop advisories and AI assistance.</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Edit Mode Action Bar -->
+      <div id="editModeActionBar" class="farm-action-bar d-none">
+        <button id="cancelEditBtn" class="btn btn-farm-cancel" type="button">
+          <i class="bi bi-x-lg"></i> <span data-i18n="farm_btn_cancel">Cancel</span>
+        </button>
+        <button id="saveProfileBtn" class="btn btn-farm-edit" type="button">
+          <i class="bi bi-check2-circle"></i> <span data-i18n="farm_btn_save">Save Changes</span>
+        </button>
+      </div>
+
+    </form>
+  </main>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/my-farm.js"></script>
+</body>
+</html>

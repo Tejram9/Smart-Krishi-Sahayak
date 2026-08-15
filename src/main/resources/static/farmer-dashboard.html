@@ -23,6 +23,9 @@
       </a>
 
       <div class="d-flex align-items-center gap-3 ms-auto">
+        <a href="/my-farm.html" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+          <i class="bi bi-person-gear"></i> <span data-i18n="nav_my_farm">My Farm</span>
+        </a>
         <select class="lang-select" aria-label="Select Language">
           <option value="EN">English (EN)</option>
           <option value="MR">मराठी (MR)</option>
@@ -48,12 +51,17 @@
       </div>
 
       <div id="profileContent" class="w-100" style="display: none;">
-        <div class="dashboard-user-info mb-3">
-          <div class="user-avatar" id="userAvatar">F</div>
-          <div class="user-details">
-            <h2 id="userName">Farmer Name</h2>
-            <span class="role-badge role-badge-farmer" data-i18n="role_farmer_badge">ROLE: FARMER</span>
+        <div class="dashboard-user-info mb-3 justify-content-between flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="user-avatar" id="userAvatar">F</div>
+            <div class="user-details">
+              <h2 id="userName">Farmer Name</h2>
+              <span class="role-badge role-badge-farmer" data-i18n="role_farmer_badge">ROLE: FARMER</span>
+            </div>
           </div>
+          <a href="/my-farm.html" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1 px-3 py-2 fw-semibold">
+            <i class="bi bi-pencil-square"></i> <span data-i18n="farm_btn_edit">Edit Profile</span>
+          </a>
         </div>
 
         <div class="profile-grid">
