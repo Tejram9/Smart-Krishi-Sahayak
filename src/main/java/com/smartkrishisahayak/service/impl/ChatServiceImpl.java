@@ -14,6 +14,7 @@ import com.smartkrishisahayak.repository.ChatMessageRepository;
 import com.smartkrishisahayak.repository.ChatSessionRepository;
 import com.smartkrishisahayak.repository.UserRepository;
 import com.smartkrishisahayak.security.UserPrincipal;
+import com.smartkrishisahayak.service.AgricultureKnowledgeService;
 import com.smartkrishisahayak.service.AiChatService;
 import com.smartkrishisahayak.service.ChatService;
 import org.slf4j.Logger;
@@ -39,16 +40,19 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
     private final AiChatService aiChatService;
+    private final AgricultureKnowledgeService agricultureKnowledgeService;
 
     @Autowired
     public ChatServiceImpl(ChatSessionRepository chatSessionRepository,
                            ChatMessageRepository chatMessageRepository,
                            UserRepository userRepository,
-                           AiChatService aiChatService) {
+                           AiChatService aiChatService,
+                           AgricultureKnowledgeService agricultureKnowledgeService) {
         this.chatSessionRepository = chatSessionRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.userRepository = userRepository;
         this.aiChatService = aiChatService;
+        this.agricultureKnowledgeService = agricultureKnowledgeService;
     }
 
     @Override
@@ -91,7 +95,9 @@ public class ChatServiceImpl implements ChatService {
         ChatMessage userMessage = new ChatMessage(session, MessageSender.USER, request.getMessage(), language);
         ChatMessage savedUserMessage = chatMessageRepository.save(userMessage);
 
-        String aiText = aiChatService.generateResponse(request.getMessage(), language);
+        // Ground AI response using verified agriculture knowledge base
+        String verifiedContext = agricultureKnowledgeService.buildGroundedContext(request.getMessage(), language);
+        String aiText = aiChatService.generateResponse(request.getMessage(), language, verifiedContext);
 
         ChatMessage aiMessage = new ChatMessage(session, MessageSender.AI, aiText, language);
         ChatMessage savedAiMessage = chatMessageRepository.save(aiMessage);

@@ -38,8 +38,13 @@ public class MockAiChatServiceImpl implements AiChatService {
 
     @Override
     public String generateResponse(String userQuery, PreferredLanguage language) {
-        log.info("[MOCK AI] Generating mock response for query (length={}) in language={}",
-                userQuery == null ? 0 : userQuery.length(), language);
+        return generateResponse(userQuery, language, null);
+    }
+
+    @Override
+    public String generateResponse(String userQuery, PreferredLanguage language, String verifiedContext) {
+        log.info("[MOCK AI] Generating mock response for query (length={}) in language={}, hasGroundedContext={}",
+                userQuery == null ? 0 : userQuery.length(), language, (verifiedContext != null && !verifiedContext.trim().isEmpty()));
         if (language == null) {
             return MOCK_EN;
         }

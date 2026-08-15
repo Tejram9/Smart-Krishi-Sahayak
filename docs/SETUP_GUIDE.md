@@ -229,3 +229,9 @@ app:
 - Network timeouts (default 15,000 ms) prevent the application from hanging on slow provider responses.
 - API keys and query parameters are stripped/masked from all error logs.
 
+### 6.4 Knowledge-Grounded Advisory (Step 5D)
+- Regardless of whether `AI_PROVIDER` is set to `mock` or `gemini`, `AgricultureKnowledgeService` deterministically scans the farmer query for crop names (English, Marathi, Hindi) and agricultural categories (Pest Control, Fertilizer Management, Sowing, Irrigation).
+- Factual advisory records from `verified_agriculture_content` with `is_published = true` are injected as structured context into Gemini prompt calls.
+- If no verified content is found for a specific crop/topic, Gemini explicitly provides a no-knowledge disclosure and advises contacting a local Krishi Seva Kendra, eliminating ungrounded hallucinations.
+
+

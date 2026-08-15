@@ -73,6 +73,11 @@ public class GeminiAiChatServiceImpl implements AiChatService {
 
     @Override
     public String generateResponse(String userQuery, PreferredLanguage language) {
+        return generateResponse(userQuery, language, null);
+    }
+
+    @Override
+    public String generateResponse(String userQuery, PreferredLanguage language, String verifiedContext) {
         if (apiKey.isEmpty()) {
             log.error("Gemini AI provider is active, but GEMINI_API_KEY is not configured.");
             throw new AiServiceException("Gemini API key is not configured. Please set the GEMINI_API_KEY environment variable.");
@@ -84,7 +89,8 @@ public class GeminiAiChatServiceImpl implements AiChatService {
 
         PreferredLanguage targetLang = language != null ? language : PreferredLanguage.EN;
         String systemPrompt = buildSystemPrompt(targetLang);
-        String requestPayload = buildRequestBody(userQuery.trim(), systemPrompt);
+        String promptWithContext = buildUserPromptText(userQuery.trim(), verifiedContext);
+        String requestPayload = buildRequestBody(promptWithContext, systemPrompt);
 
         String endpointUrl = String.format("%s/v1beta/models/%s:generateContent?key=%s", baseUrl, model, apiKey);
 
@@ -93,8 +99,8 @@ public class GeminiAiChatServiceImpl implements AiChatService {
         HttpEntity<String> entity = new HttpEntity<>(requestPayload, headers);
 
         try {
-            log.info("Sending request to Gemini API [model={}, language={}, queryLength={}]",
-                    model, targetLang, userQuery.length());
+            log.info("Sending request to Gemini API [model={}, language={}, queryLength={}, hasGroundedContext={}]",
+                    model, targetLang, userQuery.length(), (verifiedContext != null && !verifiedContext.trim().isEmpty()));
 
             ResponseEntity<String> response = restTemplate.exchange(
                     endpointUrl,
@@ -127,29 +133,39 @@ public class GeminiAiChatServiceImpl implements AiChatService {
         }
     }
 
+    private String buildUserPromptText(String userQuery, String verifiedContext) {
+        if (verifiedContext != null && !verifiedContext.trim().isEmpty()) {
+            return verifiedContext.trim() + "\n\nFarmer Query:\n" + userQuery;
+        }
+        return userQuery;
+    }
+
     private String buildSystemPrompt(PreferredLanguage language) {
         StringBuilder sb = new StringBuilder();
-        sb.append("You are 'Smart Krishi Sahayak', an AI agricultural assistant helping Indian farmers with crop queries.\n");
-        sb.append("Guidelines:\n");
-        sb.append("1. Provide practical, farmer-friendly agricultural guidance regarding crops, soil, fertilizers, and pests.\n");
-        sb.append("2. Do not invent certainty. For critical chemical dosage or disease questions, advise consulting the local Krishi Seva Kendra.\n");
+        sb.append("You are 'Smart Krishi Sahayak', an AI agricultural expert assistant helping Indian farmers with crop queries.\n");
+        sb.append("Core Instructions:\n");
+        sb.append("1. Primary Source of Truth: Base your crop advice primarily on the provided [VERIFIED AGRICULTURE KNOWLEDGE BASE CONTEXT] when available.\n");
+        sb.append("2. Factual Accuracy: Do not contradict the verified knowledge context. Do not fabricate or invent dosages, chemicals, or specific recommendations not supported by facts.\n");
+        sb.append("3. No-Knowledge / Unknown Queries: If the provided verified context is empty or does not contain specific information for the user's query, explicitly state that the verified agricultural knowledge base does not contain specific records for this request. Provide only safe, standard general agricultural principles if helpful, and strongly recommend consulting a local Krishi Seva Kendra (कृषी सेवा केंद्र) or agriculture extension officer.\n");
+        sb.append("4. Safety & Critical Guidance: For severe pest outbreaks, high chemical dosages, or uncertain crop diseases, always recommend in-person consultation with a local agricultural officer.\n");
+        sb.append("5. Tone & Structure: Keep answers concise, clear, and farmer-friendly. Organize with a direct answer and bullet points where helpful.\n");
 
         switch (language) {
             case MR:
-                sb.append("3. Respond exclusively in Marathi (मराठी) using natural Devanagari script.");
+                sb.append("6. Language Requirement: Respond exclusively in Marathi (मराठी) using natural Devanagari script. If the verified context is in English, translate and explain the facts accurately into Marathi.");
                 break;
             case HI:
-                sb.append("3. Respond exclusively in Hindi (हिंदी) using natural Devanagari script.");
+                sb.append("6. Language Requirement: Respond exclusively in Hindi (हिंदी) using natural Devanagari script. If the verified context is in English, translate and explain the facts accurately into Hindi.");
                 break;
             default:
-                sb.append("3. Respond clearly and concisely in English.");
+                sb.append("6. Language Requirement: Respond clearly and concisely in English.");
                 break;
         }
 
         return sb.toString();
     }
 
-    private String buildRequestBody(String userQuery, String systemPrompt) {
+    private String buildRequestBody(String promptText, String systemPrompt) {
         try {
             ObjectNode rootNode = objectMapper.createObjectNode();
 
@@ -158,7 +174,7 @@ public class GeminiAiChatServiceImpl implements AiChatService {
             ObjectNode contentObj = contentsArray.addObject();
             contentObj.put("role", "user");
             ArrayNode partsArray = contentObj.putArray("parts");
-            partsArray.addObject().put("text", userQuery);
+            partsArray.addObject().put("text", promptText);
 
             // systemInstruction object
             ObjectNode systemInstructionObj = rootNode.putObject("systemInstruction");

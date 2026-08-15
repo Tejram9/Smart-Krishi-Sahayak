@@ -15,5 +15,17 @@ public interface AiChatService {
      * @param language  the preferred response language
      * @return generated response text
      */
-    String generateResponse(String userQuery, PreferredLanguage language);
+    default String generateResponse(String userQuery, PreferredLanguage language) {
+        return generateResponse(userQuery, language, null);
+    }
+
+    /**
+     * Generate an AI response grounded in the provided verified agriculture context.
+     *
+     * @param userQuery       the farmer's question or message
+     * @param language        the preferred response language
+     * @param verifiedContext verified agricultural guidance from the database, or null if unavailable
+     * @return generated response text
+     */
+    String generateResponse(String userQuery, PreferredLanguage language, String verifiedContext);
 }

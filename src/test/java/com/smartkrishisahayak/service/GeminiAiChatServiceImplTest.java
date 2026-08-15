@@ -253,4 +253,72 @@ class GeminiAiChatServiceImplTest {
 
         mockServer.verify();
     }
+
+    @Test
+    @DisplayName("Test 10: Verified agriculture context is properly injected into Gemini request payload")
+    void generateResponse_withVerifiedContext_injectsContextIntoPrompt() {
+        String mockGeminiResponse = """
+            {
+              "candidates": [
+                {
+                  "content": {
+                    "parts": [
+                      {
+                        "text": "Based on verified guidance, apply Neem oil @ 5ml/L for cotton pink bollworm."
+                      }
+                    ],
+                    "role": "model"
+                  },
+                  "finishReason": "STOP"
+                }
+              ]
+            }
+            """;
+
+        String verifiedContext = "=== VERIFIED AGRICULTURE KNOWLEDGE BASE ===\nCrop: Cotton\nTitle: Pink Bollworm IPM\nVerified Guidance: Use Neem oil @ 5ml/L";
+
+        mockServer.expect(requestTo(EXPECTED_URL))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(jsonPath("$.contents[0].parts[0].text").value(org.hamcrest.Matchers.containsString("VERIFIED AGRICULTURE KNOWLEDGE BASE")))
+                .andExpect(jsonPath("$.contents[0].parts[0].text").value(org.hamcrest.Matchers.containsString("Farmer Query:\nHow to treat pink bollworm?")))
+                .andExpect(jsonPath("$.systemInstruction.parts[0].text").value(org.hamcrest.Matchers.containsString("VERIFIED AGRICULTURE KNOWLEDGE BASE CONTEXT")))
+                .andRespond(withSuccess(mockGeminiResponse, MediaType.APPLICATION_JSON));
+
+        String response = geminiService.generateResponse("How to treat pink bollworm?", PreferredLanguage.EN, verifiedContext);
+
+        assertThat(response).contains("Based on verified guidance");
+        mockServer.verify();
+    }
+
+    @Test
+    @DisplayName("Test 11: System prompt includes no-knowledge disclaimer rule")
+    void generateResponse_systemPrompt_containsNoKnowledgeInstruction() {
+        String mockGeminiResponse = """
+            {
+              "candidates": [
+                {
+                  "content": {
+                    "parts": [
+                      {
+                        "text": "The verified knowledge base does not contain specific information for dragon fruit."
+                      }
+                    ],
+                    "role": "model"
+                  },
+                  "finishReason": "STOP"
+                }
+              ]
+            }
+            """;
+
+        mockServer.expect(requestTo(EXPECTED_URL))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(jsonPath("$.systemInstruction.parts[0].text").value(org.hamcrest.Matchers.containsString("No-Knowledge / Unknown Queries")))
+                .andRespond(withSuccess(mockGeminiResponse, MediaType.APPLICATION_JSON));
+
+        String response = geminiService.generateResponse("How to grow dragon fruit?", PreferredLanguage.EN, null);
+
+        assertThat(response).contains("verified knowledge base");
+        mockServer.verify();
+    }
 }
