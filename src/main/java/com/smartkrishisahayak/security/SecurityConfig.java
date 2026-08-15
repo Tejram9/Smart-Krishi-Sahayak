@@ -71,7 +71,7 @@ public class SecurityConfig {
                         // Public Endpoints
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
-                        .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/lang/**", "/assets/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/lang/**", "/assets/**", "/images/**", "/favicon.ico").permitAll()
                         
                         // Admin Protected Endpoints
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")

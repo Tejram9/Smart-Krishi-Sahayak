@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Smart Krishi Sahayak</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand-text" href="/index.html">
+        <span class="brand-icon"><i class="bi bi-tree-fill"></i></span>
+        <span data-i18n="app_name">Smart Krishi Sahayak</span>
+      </a>
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        <select class="lang-select" aria-label="Select Language">
+          <option value="EN">English (EN)</option>
+          <option value="MR">मराठी (MR)</option>
+          <option value="HI">हिंदी (HI)</option>
+        </select>
+        <a href="/login.html" class="btn btn-sm btn-outline-success" data-i18n="nav_login">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Register Main Container -->
+  <div class="auth-container">
+    <div class="auth-card auth-card-wide">
+      <div class="auth-header">
+        <div class="auth-brand-logo"><i class="bi bi-person-plus-fill"></i></div>
+        <h1 class="auth-title" data-i18n="reg_title">Farmer Registration</h1>
+        <p class="auth-subtitle" data-i18n="reg_subtitle">Create your account to start receiving personalized crop guidance.</p>
+      </div>
+
+      <!-- Alert Banner -->
+      <div id="alertBanner" class="alert-banner alert-banner-danger" role="alert"></div>
+
+      <!-- Registration Form -->
+      <form id="registerForm">
+        <div class="row g-3">
+          <!-- Full Name -->
+          <div class="col-md-6">
+            <label for="fullName" class="form-label"><span data-i18n="reg_fullname">Full Name</span> <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="fullName" data-i18n-placeholder="reg_fullname_placeholder" placeholder="Enter your full name" required>
+          </div>
+
+          <!-- Mobile Number -->
+          <div class="col-md-6">
+            <label for="mobileNumber" class="form-label"><span data-i18n="reg_mobile">Mobile Number</span> <span class="text-danger">*</span></label>
+            <input type="tel" class="form-control" id="mobileNumber" data-i18n-placeholder="reg_mobile_placeholder" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+          </div>
+
+          <!-- Email -->
+          <div class="col-md-6">
+            <label for="email" class="form-label" data-i18n="reg_email">Email Address (Optional)</label>
+            <input type="email" class="form-control" id="email" data-i18n-placeholder="reg_email_placeholder" placeholder="example@domain.com">
+          </div>
+
+          <!-- Preferred Language -->
+          <div class="col-md-6">
+            <label for="preferredLanguage" class="form-label"><span data-i18n="reg_lang">Preferred Language</span> <span class="text-danger">*</span></label>
+            <select class="form-select" id="preferredLanguage" required>
+              <option value="MR">मराठी (Marathi)</option>
+              <option value="EN">English</option>
+              <option value="HI">हिंदी (Hindi)</option>
+            </select>
+          </div>
+
+          <!-- Password -->
+          <div class="col-md-6">
+            <label for="password" class="form-label"><span data-i18n="reg_password">Password</span> <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" id="password" data-i18n-placeholder="reg_password_placeholder" placeholder="Minimum 6 characters" minlength="6" required autocomplete="new-password">
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="col-md-6">
+            <label for="confirmPassword" class="form-label"><span data-i18n="reg_confirm_password">Confirm Password</span> <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" id="confirmPassword" data-i18n-placeholder="reg_confirm_password_placeholder" placeholder="Re-enter password" minlength="6" required autocomplete="new-password">
+          </div>
+
+          <hr class="my-3 text-muted">
+          <h6 class="fw-bold text-success mb-2"><i class="bi bi-geo-alt-fill"></i> Farm & Location Information</h6>
+
+          <!-- District -->
+          <div class="col-md-4">
+            <label for="district" class="form-label"><span data-i18n="reg_district">District</span> <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="district" data-i18n-placeholder="reg_district_placeholder" placeholder="e.g., Nashik, Pune" required>
+          </div>
+
+          <!-- State -->
+          <div class="col-md-4">
+            <label for="state" class="form-label" data-i18n="reg_state">State</label>
+            <input type="text" class="form-control" id="state" value="Maharashtra" required>
+          </div>
+
+          <!-- Taluka -->
+          <div class="col-md-4">
+            <label for="taluka" class="form-label" data-i18n="reg_taluka">Taluka (Optional)</label>
+            <input type="text" class="form-control" id="taluka" placeholder="e.g., Niphad">
+          </div>
+
+          <!-- Village -->
+          <div class="col-md-4">
+            <label for="village" class="form-label" data-i18n="reg_village">Village (Optional)</label>
+            <input type="text" class="form-control" id="village" placeholder="e.g., Pimpalgaon">
+          </div>
+
+          <!-- Land Size -->
+          <div class="col-md-4">
+            <label for="landSizeAcres" class="form-label" data-i18n="reg_land_size">Land Size in Acres (Optional)</label>
+            <input type="number" step="0.1" min="0" class="form-control" id="landSizeAcres" placeholder="e.g., 4.5">
+          </div>
+
+          <!-- Soil Type -->
+          <div class="col-md-4">
+            <label for="soilType" class="form-label" data-i18n="reg_soil_type">Soil Type (Optional)</label>
+            <input type="text" class="form-control" id="soilType" data-i18n-placeholder="reg_soil_type_placeholder" placeholder="e.g., Black Cotton">
+          </div>
+
+          <!-- Primary Crops -->
+          <div class="col-12">
+            <label for="primaryCrops" class="form-label" data-i18n="reg_primary_crops">Primary Crops (Optional)</label>
+            <input type="text" class="form-control" id="primaryCrops" data-i18n-placeholder="reg_primary_crops_placeholder" placeholder="e.g., Soybean, Sugarcane, Wheat">
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-auth-submit mt-4">
+          <span data-i18n="reg_btn">Register Account</span> <i class="bi bi-check-circle-fill"></i>
+        </button>
+      </form>
+
+      <div class="auth-footer-link">
+        <span data-i18n="reg_already_account">Already registered?</span>
+        <a href="/login.html" data-i18n="reg_login_link">Log in here</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p data-i18n="footer_text">© 2026 Smart Krishi Sahayak. Dedicated to Indian Agriculture & Farmer Prosperity.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/register.js"></script>
+</body>
+</html>

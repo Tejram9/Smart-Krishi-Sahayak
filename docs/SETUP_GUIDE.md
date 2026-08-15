@@ -128,15 +128,53 @@ java -jar target/smart-krishi-sahayak-1.0.0.jar
 
 ---
 
-## 5. Accessing the Web Application
+## 5. Accessing the Web Application & Frontend Architecture
 
 Once the console displays `Started SmartKrishiSahayakApplication in X seconds`, open your web browser:
 
-- **Public Landing Page:** [http://localhost:8080/index.html](http://localhost:8080/index.html)
+- **Public Landing Page:** [http://localhost:8080/](http://localhost:8080/) (or `index.html`)
+- **Farmer Registration:** [http://localhost:8080/register.html](http://localhost:8080/register.html)
 - **Login Page:** [http://localhost:8080/login.html](http://localhost:8080/login.html)
-- **Swagger API Docs (if enabled):** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **Farmer Dashboard:** [http://localhost:8080/farmer-dashboard.html](http://localhost:8080/farmer-dashboard.html) (Requires login)
+- **Admin Dashboard:** [http://localhost:8080/admin-dashboard.html](http://localhost:8080/admin-dashboard.html) (Requires `ROLE_ADMIN`)
 
----
+### 5.1 Frontend Structure
+The frontend is built with vanilla HTML5, CSS3, JavaScript (ES6+), Bootstrap 5, and served directly as static resources by Spring Boot:
+
+```
+src/main/resources/static/
+├── index.html            # Public Landing Page
+├── login.html            # Authentication Login Page
+├── register.html         # Farmer Registration Page
+├── farmer-dashboard.html # Farmer Profile & Services Dashboard
+├── admin-dashboard.html  # Administrator Control Center
+├── css/
+│   ├── style.css         # Global design system & theme
+│   ├── auth.css          # Login & registration layouts
+│   └── dashboard.css     # Dashboard cards & grid layouts
+├── js/
+│   ├── api.js            # Centralized fetch client (adds Bearer token, handles 401/403)
+│   ├── auth.js           # JWT token management & role redirect logic
+│   ├── utils.js          # Toast notifications & button loaders
+│   ├── i18n.js           # Client-side dynamic multilingual manager
+│   ├── login.js          # Login page controller
+│   ├── register.js       # Registration form controller
+│   ├── farmer-dashboard.js # Farmer dashboard controller (GET /api/v1/auth/me)
+│   └── admin-dashboard.js  # Admin dashboard controller
+└── lang/
+    ├── en.json           # English dictionary
+    ├── mr.json           # Marathi (मराठी) dictionary
+    └── hi.json           # Hindi (हिंदी) dictionary
+```
+
+### 5.2 Multilingual Support
+The application natively supports **English (EN)**, **Marathi (MR)**, and **Hindi (HI)**. Users can switch languages dynamically from the dropdown selector on any page, and the choice is persisted in local storage.
+
+### 5.3 Authentication & Authorization
+- **JWT Storage:** Tokens are stored in browser `localStorage` upon successful authentication and sent automatically via `Authorization: Bearer <token>` headers.
+- **Role Redirection:** Upon login, `ROLE_FARMER` users are routed to `farmer-dashboard.html`, while `ROLE_ADMIN` users are routed to `admin-dashboard.html`.
+- **Route Guarding:** Unauthenticated requests to protected dashboards automatically redirect to `login.html`. Non-admin users attempting to access the admin dashboard are rejected and redirected.
+
 
 ## 6. Switching AI Modes
 

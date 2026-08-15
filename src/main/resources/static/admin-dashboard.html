@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Smart Krishi Sahayak</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <!-- Dashboard Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand-text" href="/index.html">
+        <span class="brand-icon"><i class="bi bi-shield-lock-fill"></i></span>
+        <span data-i18n="app_name">Smart Krishi Sahayak</span>
+      </a>
+
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        <select class="lang-select" aria-label="Select Language">
+          <option value="EN">English (EN)</option>
+          <option value="MR">मराठी (MR)</option>
+          <option value="HI">हिंदी (HI)</option>
+        </select>
+        <button id="logoutBtn" class="btn-logout">
+          <i class="bi bi-box-arrow-right"></i> <span data-i18n="nav_logout">Logout</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Dashboard Main Content -->
+  <div class="dashboard-container">
+
+    <!-- Admin Header Card -->
+    <div class="dashboard-header">
+      <div id="profileLoading" class="w-100 text-center py-3">
+        <div class="spinner-border text-success" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted" data-i18n="common_loading">Loading administrator profile...</p>
+      </div>
+
+      <div id="profileContent" class="w-100" style="display: none;">
+        <div class="dashboard-user-info mb-3">
+          <div class="user-avatar bg-warning text-dark border-warning" id="userAvatar">A</div>
+          <div class="user-details">
+            <h2 id="userName">Administrator</h2>
+            <span class="role-badge role-badge-admin" data-i18n="role_admin_badge">ROLE: ADMIN</span>
+          </div>
+        </div>
+
+        <!-- System Status Banner -->
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="alert">
+          <i class="bi bi-check-circle-fill fs-5"></i>
+          <span data-i18n="admin_system_status">System Status: Active & Operational</span>
+        </div>
+
+        <div class="profile-grid">
+          <div class="profile-card">
+            <div class="profile-label" data-i18n="profile_mobile">Mobile Number</div>
+            <div class="profile-value" id="userMobile">-</div>
+          </div>
+          <div class="profile-card">
+            <div class="profile-label" data-i18n="profile_email">Email Address</div>
+            <div class="profile-value" id="userEmail">-</div>
+          </div>
+          <div class="profile-card">
+            <div class="profile-label">Assigned Role</div>
+            <div class="profile-value text-success" id="userRole">ROLE_ADMIN</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Management Console Modules -->
+    <h3 class="fw-bold mb-4 text-dark" data-i18n="admin_modules_title">Management Console</h3>
+
+    <div class="module-grid">
+      <!-- Module 1: User Management -->
+      <div class="card-custom">
+        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
+        <div class="card-icon-box text-warning"><i class="bi bi-people-fill"></i></div>
+        <h4 class="card-title" data-i18n="admin_user_mgmt">User Management</h4>
+        <p class="card-desc">View registered farmers, manage account statuses, and grant administrative access.</p>
+      </div>
+
+      <!-- Module 2: Crop Catalog -->
+      <div class="card-custom">
+        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
+        <div class="card-icon-box text-warning"><i class="bi bi-tree"></i></div>
+        <h4 class="card-title" data-i18n="admin_crop_mgmt">Crop Catalog Management</h4>
+        <p class="card-desc">Maintain agronomic metadata, crop calendars, and verified advisory content.</p>
+      </div>
+
+      <!-- Module 3: Chat History Audit -->
+      <div class="card-custom">
+        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
+        <div class="card-icon-box text-warning"><i class="bi bi-card-checklist"></i></div>
+        <h4 class="card-title" data-i18n="admin_chat_mon">Chat History & AI Audit</h4>
+        <p class="card-desc">Monitor AI response accuracy, review farmer query logs, and audit advisory quality.</p>
+      </div>
+
+      <!-- Module 4: Analytics -->
+      <div class="card-custom">
+        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
+        <div class="card-icon-box text-warning"><i class="bi bi-bar-chart-line-fill"></i></div>
+        <h4 class="card-title" data-i18n="admin_analytics">Analytics & Usage Insights</h4>
+        <p class="card-desc">System usage trends, active user metrics, and district-level advisory analytics.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p data-i18n="footer_text">© 2026 Smart Krishi Sahayak. Dedicated to Indian Agriculture & Farmer Prosperity.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>
