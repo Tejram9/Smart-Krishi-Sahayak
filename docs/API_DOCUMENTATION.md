@@ -233,12 +233,84 @@ Every API endpoint returns a predictable envelope JSON format.
 
 ### 6.1 List All Verified Crops
 - **Endpoint:** `GET /api/v1/crops`
-- **Query Params:** `language` (EN/MR/HI), `category` (optional)
-- **Access:** Public / Farmer
+- **Access:** Protected (`ROLE_FARMER`, `ROLE_ADMIN`)
+- **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+- **Query Parameters:**
+  - `keyword` (optional): search term matched against English, Marathi, and Hindi crop names
+  - `category` (optional): category filter (`Commercial`, `Cereals`, `Pulses`, `Vegetables`, `Fruits`)
+  - `season` (optional): season filter (`Kharif`, `Rabi`, `Zaid`, `Perennial`)
+  - `language` (optional): preferred language (`EN`, `MR`, `HI`)
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Crops retrieved successfully.",
+  "data": [
+    {
+      "id": 1,
+      "nameEn": "Cotton",
+      "nameMr": "कापूस",
+      "nameHi": "कपास",
+      "category": "Commercial",
+      "suitableSeason": "Kharif",
+      "soilRequirements": "Deep black cotton soil (Vertisols), well-drained",
+      "waterRequirement": "Medium (500-700 mm)",
+      "description": "High-value fiber and cash crop extensively cultivated in Vidarbha and Marathwada regions of Maharashtra.",
+      "createdAt": "2026-08-15T15:51:09",
+      "updatedAt": "2026-08-15T15:51:09"
+    }
+  ],
+  "timestamp": "2026-08-15T15:51:09"
+}
+```
 
-### 6.2 Get Single Crop Details
+### 6.2 Get Single Crop Details with Verified Guidance
 - **Endpoint:** `GET /api/v1/crops/{id}`
-- **Access:** Public / Farmer
+- **Access:** Protected (`ROLE_FARMER`, `ROLE_ADMIN`)
+- **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+- **Path Variable:** `id` (Crop ID)
+- **Query Parameters:** `language` (optional, `EN`, `MR`, `HI`)
+- **Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Crop details retrieved successfully.",
+  "data": {
+    "id": 1,
+    "nameEn": "Cotton",
+    "nameMr": "कापूस",
+    "nameHi": "कपास",
+    "category": "Commercial",
+    "suitableSeason": "Kharif",
+    "soilRequirements": "Deep black cotton soil (Vertisols), well-drained",
+    "waterRequirement": "Medium (500-700 mm)",
+    "description": "High-value fiber and cash crop extensively cultivated in Vidarbha and Marathwada regions of Maharashtra.",
+    "createdAt": "2026-08-15T15:51:09",
+    "updatedAt": "2026-08-15T15:51:09",
+    "verifiedContents": [
+      {
+        "id": 1,
+        "title": "Pink Bollworm Integrated Pest Management",
+        "contentBody": "To control Pink Bollworm in Cotton:\n1. Install pheromone traps @ 5 traps/ha for monitoring and 20 traps/ha for mass trapping.\n2. Spray Neem oil (1500 ppm) @ 5 ml/liter water at 45 days after sowing.\n3. Release Trichogramma egg parasitoids @ 1,50,000/ha.\n4. Avoid chemical spraying during early crop stages to protect natural predators.",
+        "category": "Pest Control",
+        "language": "EN",
+        "createdAt": "2026-08-15T15:51:09",
+        "updatedAt": "2026-08-15T15:51:09"
+      }
+    ]
+  },
+  "timestamp": "2026-08-15T15:51:09"
+}
+```
+- **Error Response (`404 Not Found`):**
+```json
+{
+  "success": false,
+  "message": "Crop not found with id : '999999'",
+  "errors": null,
+  "timestamp": "2026-08-15T15:51:09"
+}
+```
 
 ---
 

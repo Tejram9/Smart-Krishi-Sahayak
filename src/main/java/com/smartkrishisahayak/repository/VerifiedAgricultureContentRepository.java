@@ -10,4 +10,5 @@ import java.util.List;
 public interface VerifiedAgricultureContentRepository extends JpaRepository<VerifiedAgricultureContent, Long> {
     List<VerifiedAgricultureContent> findByCropId(Long cropId);
     List<VerifiedAgricultureContent> findByIsPublishedTrue();
+    List<VerifiedAgricultureContent> findByCropIdAndIsPublishedTrue(Long cropId);
 }

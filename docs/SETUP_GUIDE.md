@@ -136,6 +136,7 @@ Once the console displays `Started SmartKrishiSahayakApplication in X seconds`, 
 - **Farmer Registration:** [http://localhost:8080/register.html](http://localhost:8080/register.html)
 - **Login Page:** [http://localhost:8080/login.html](http://localhost:8080/login.html)
 - **Farmer Dashboard:** [http://localhost:8080/farmer-dashboard.html](http://localhost:8080/farmer-dashboard.html) (Requires login)
+- **Crop Information Hub:** [http://localhost:8080/crop-info.html](http://localhost:8080/crop-info.html) (Requires login)
 - **Admin Dashboard:** [http://localhost:8080/admin-dashboard.html](http://localhost:8080/admin-dashboard.html) (Requires `ROLE_ADMIN`)
 
 ### 5.1 Frontend Structure
@@ -147,6 +148,7 @@ src/main/resources/static/
 ├── login.html            # Authentication Login Page
 ├── register.html         # Farmer Registration Page
 ├── farmer-dashboard.html # Farmer Profile & Services Dashboard
+├── crop-info.html        # Crop Information Hub & Verified Knowledge Viewer
 ├── admin-dashboard.html  # Administrator Control Center
 ├── css/
 │   ├── style.css         # Global design system & theme
@@ -157,6 +159,7 @@ src/main/resources/static/
 │   ├── auth.js           # JWT token management & role redirect logic
 │   ├── utils.js          # Toast notifications & button loaders
 │   ├── i18n.js           # Client-side dynamic multilingual manager
+│   ├── crop.js           # Crop browser, multilingual search, filter, and modal controller
 │   ├── login.js          # Login page controller
 │   ├── register.js       # Registration form controller
 │   ├── farmer-dashboard.js # Farmer dashboard controller (GET /api/v1/auth/me)
@@ -166,6 +169,11 @@ src/main/resources/static/
     ├── mr.json           # Marathi (मराठी) dictionary
     └── hi.json           # Hindi (हिंदी) dictionary
 ```
+
+### 5.2 Automated Data Seeding
+Upon application startup:
+1. `AdminInitializer` creates the default system administrator account if no admin exists.
+2. `CropDataInitializer` seeds 10 realistic Maharashtra crop varieties (Cotton, Soybean, Sugarcane, Onion, Wheat, Turmeric, Pomegranate, Jowar, Gram, Tomato) along with published verified agriculture advisories across Pest Control, Fertilizer, Irrigation, and Sowing categories in English, Marathi, and Hindi if `cropRepository.count() == 0`.
 
 ### 5.2 Multilingual Support
 The application natively supports **English (EN)**, **Marathi (MR)**, and **Hindi (HI)**. Users can switch languages dynamically from the dropdown selector on any page, and the choice is persisted in local storage.

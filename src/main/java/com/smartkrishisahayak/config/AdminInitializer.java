@@ -7,12 +7,14 @@ import com.smartkrishisahayak.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.logging.Logger;
 
 @Component
+@Order(1)
 public class AdminInitializer implements CommandLineRunner {
 
     private static final Logger logger = Logger.getLogger(AdminInitializer.class.getName());
