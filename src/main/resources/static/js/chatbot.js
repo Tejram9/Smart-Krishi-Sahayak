@@ -631,15 +631,11 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Chat error:', error);
       hideTypingIndicator();
       
-      let errorMsg = I18n.getTranslation('chat_error_failed_send');
+      let errorMsg = error.message || I18n.getTranslation('chat_error_failed_send');
       if (error.status === 401) {
         errorMsg = I18n.getTranslation('err_session_expired');
       } else if (error.status === 403) {
         errorMsg = I18n.getTranslation('err_access_denied');
-      } else if (error.status === 503 || error.status === 500) {
-        errorMsg = I18n.getTranslation('crops_error_desc');
-      } else if (error.message) {
-        errorMsg = error.message;
       }
 
       Utils.showToast(errorMsg, 'error');

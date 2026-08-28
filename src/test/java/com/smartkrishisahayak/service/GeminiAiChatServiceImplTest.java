@@ -26,10 +26,10 @@ class GeminiAiChatServiceImplTest {
     private GeminiAiChatServiceImpl geminiService;
 
     private static final String TEST_API_KEY = "test-gemini-key-12345";
-    private static final String TEST_MODEL = "gemini-1.5-flash";
+    private static final String TEST_MODEL = "gemini-2.5-flash";
     private static final String TEST_BASE_URL = "https://generativelanguage.googleapis.com";
     private static final String EXPECTED_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=test-gemini-key-12345";
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     @BeforeEach
     void setUp() {
@@ -48,7 +48,7 @@ class GeminiAiChatServiceImplTest {
     }
 
     @Test
-    @DisplayName("Test 1: Successful response generation in English")
+    @DisplayName("Test 1: Successful response generation in English using x-goog-api-key header")
     void generateResponse_english_success() {
         String mockGeminiResponse = """
             {
@@ -70,6 +70,7 @@ class GeminiAiChatServiceImplTest {
 
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.contents[0].parts[0].text").value("How to grow cotton?"))
                 .andExpect(jsonPath("$.systemInstruction.parts[0].text").value(org.hamcrest.Matchers.containsString("English")))
@@ -104,6 +105,7 @@ class GeminiAiChatServiceImplTest {
 
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
                 .andExpect(jsonPath("$.systemInstruction.parts[0].text").value(org.hamcrest.Matchers.containsString("मराठी")))
                 .andRespond(withSuccess(mockGeminiResponse, MediaType.APPLICATION_JSON));
 
@@ -136,6 +138,7 @@ class GeminiAiChatServiceImplTest {
 
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
                 .andExpect(jsonPath("$.systemInstruction.parts[0].text").value(org.hamcrest.Matchers.containsString("हिंदी")))
                 .andRespond(withSuccess(mockGeminiResponse, MediaType.APPLICATION_JSON));
 
@@ -157,6 +160,7 @@ class GeminiAiChatServiceImplTest {
                 objectMapper
         );
 
+        assertThat(serviceWithoutKey.isApiKeyConfigured()).isFalse();
         assertThatThrownBy(() -> serviceWithoutKey.generateResponse("Hello", PreferredLanguage.EN))
                 .isInstanceOf(AiServiceException.class)
                 .hasMessageContaining("Gemini API key is not configured");
@@ -185,6 +189,7 @@ class GeminiAiChatServiceImplTest {
 
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
                 .andRespond(withBadRequest().body(errorJson).contentType(MediaType.APPLICATION_JSON));
 
         assertThatThrownBy(() -> geminiService.generateResponse("Test query", PreferredLanguage.EN))
@@ -210,21 +215,76 @@ class GeminiAiChatServiceImplTest {
 
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN).body(errorJson).contentType(MediaType.APPLICATION_JSON));
 
         assertThatThrownBy(() -> geminiService.generateResponse("Test query", PreferredLanguage.EN))
                 .isInstanceOf(AiServiceException.class)
                 .hasMessageContaining("403")
-                .hasMessageContaining("API key not valid");
+                .hasMessageContaining("Invalid or unauthorized Gemini API key");
 
         mockServer.verify();
     }
 
     @Test
-    @DisplayName("Test 8: Gemini HTTP 500 Server error handled safely")
+    @DisplayName("Test 8: Gemini HTTP 404 Model Not Found includes model and endpoint without secret")
+    void generateResponse_http404_throwsDetailedException() {
+        String errorJson = """
+            {
+              "error": {
+                "code": 404,
+                "message": "models/gemini-2.5-flash is not found for API version v1beta",
+                "status": "NOT_FOUND"
+              }
+            }
+            """;
+
+        mockServer.expect(requestTo(EXPECTED_URL))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND).body(errorJson).contentType(MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> geminiService.generateResponse("Test query", PreferredLanguage.EN))
+                .isInstanceOf(AiServiceException.class)
+                .hasMessageContaining("404")
+                .hasMessageContaining("gemini-2.5-flash")
+                .hasMessageContaining("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent");
+
+        mockServer.verify();
+    }
+
+    @Test
+    @DisplayName("Test 9: Gemini HTTP 429 Rate Limit error handled with friendly message")
+    void generateResponse_http429_throwsRateLimitException() {
+        String errorJson = """
+            {
+              "error": {
+                "code": 429,
+                "message": "Resource has been exhausted (e.g. check quota).",
+                "status": "RESOURCE_EXHAUSTED"
+              }
+            }
+            """;
+
+        mockServer.expect(requestTo(EXPECTED_URL))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
+                .andRespond(withStatus(HttpStatus.TOO_MANY_REQUESTS).body(errorJson).contentType(MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> geminiService.generateResponse("Test query", PreferredLanguage.EN))
+                .isInstanceOf(AiServiceException.class)
+                .hasMessageContaining("429")
+                .hasMessageContaining("Rate limit or API quota exceeded");
+
+        mockServer.verify();
+    }
+
+    @Test
+    @DisplayName("Test 10: Gemini HTTP 500 Server error handled safely")
     void generateResponse_http500_throwsException() {
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
                 .andRespond(withServerError());
 
         assertThatThrownBy(() -> geminiService.generateResponse("Test query", PreferredLanguage.EN))
@@ -235,27 +295,62 @@ class GeminiAiChatServiceImplTest {
     }
 
     @Test
-    @DisplayName("Test 9: Empty candidates list in response throws AiServiceException")
-    void generateResponse_emptyCandidates_throwsException() {
-        String emptyCandidatesResponse = """
+    @DisplayName("Test 11: Multi-part candidate response concatenated properly")
+    void generateResponse_multiPartResponse_concatenatesCorrectly() {
+        String mockGeminiResponse = """
             {
-              "candidates": []
+              "candidates": [
+                {
+                  "content": {
+                    "parts": [
+                      { "text": "Part 1: Sowing time. " },
+                      { "text": "Part 2: Irrigation management." }
+                    ],
+                    "role": "model"
+                  },
+                  "finishReason": "STOP"
+                }
+              ]
             }
             """;
 
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
-                .andRespond(withSuccess(emptyCandidatesResponse, MediaType.APPLICATION_JSON));
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
+                .andRespond(withSuccess(mockGeminiResponse, MediaType.APPLICATION_JSON));
 
-        assertThatThrownBy(() -> geminiService.generateResponse("Test query", PreferredLanguage.EN))
-                .isInstanceOf(AiServiceException.class)
-                .hasMessageContaining("empty response");
+        String response = geminiService.generateResponse("Cotton details", PreferredLanguage.EN);
 
+        assertThat(response).isEqualTo("Part 1: Sowing time. Part 2: Irrigation management.");
         mockServer.verify();
     }
 
     @Test
-    @DisplayName("Test 10: Verified agriculture context is properly injected into Gemini request payload")
+    @DisplayName("Test 12: Safety blocked response returns safe localized fallback")
+    void generateResponse_safetyBlocked_returnsSafeFallback() {
+        String mockSafetyResponse = """
+            {
+              "candidates": [
+                {
+                  "finishReason": "SAFETY"
+                }
+              ]
+            }
+            """;
+
+        mockServer.expect(requestTo(EXPECTED_URL))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
+                .andRespond(withSuccess(mockSafetyResponse, MediaType.APPLICATION_JSON));
+
+        String response = geminiService.generateResponse("Dangerous mixture", PreferredLanguage.MR);
+
+        assertThat(response).contains("सुरक्षा धोरणांमुळे");
+        mockServer.verify();
+    }
+
+    @Test
+    @DisplayName("Test 13: Verified agriculture context is properly injected into Gemini request payload")
     void generateResponse_withVerifiedContext_injectsContextIntoPrompt() {
         String mockGeminiResponse = """
             {
@@ -279,6 +374,7 @@ class GeminiAiChatServiceImplTest {
 
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
                 .andExpect(jsonPath("$.contents[0].parts[0].text").value(org.hamcrest.Matchers.containsString("VERIFIED AGRICULTURE KNOWLEDGE BASE")))
                 .andExpect(jsonPath("$.contents[0].parts[0].text").value(org.hamcrest.Matchers.containsString("Farmer Query:\nHow to treat pink bollworm?")))
                 .andExpect(jsonPath("$.systemInstruction.parts[0].text").value(org.hamcrest.Matchers.containsString("VERIFIED AGRICULTURE KNOWLEDGE BASE CONTEXT")))
@@ -291,17 +387,31 @@ class GeminiAiChatServiceImplTest {
     }
 
     @Test
-    @DisplayName("Test 11: System prompt includes no-knowledge disclaimer rule")
-    void generateResponse_systemPrompt_containsNoKnowledgeInstruction() {
+    @DisplayName("Test 14: Model name normalization strips duplicate models/ prefix and suffixes")
+    void modelNormalization_tests() {
+        assertThat(GeminiAiChatServiceImpl.normalizeModelName("models/gemini-2.5-flash")).isEqualTo("gemini-2.5-flash");
+        assertThat(GeminiAiChatServiceImpl.normalizeModelName("/models/gemini-2.5-flash")).isEqualTo("gemini-2.5-flash");
+        assertThat(GeminiAiChatServiceImpl.normalizeModelName("gemini-2.5-flash")).isEqualTo("gemini-2.5-flash");
+        assertThat(GeminiAiChatServiceImpl.normalizeModelName("gemini-2.5-flash:generateContent")).isEqualTo("gemini-2.5-flash");
+        assertThat(GeminiAiChatServiceImpl.normalizeModelName("")).isEqualTo(GeminiAiChatServiceImpl.DEFAULT_MODEL);
+        assertThat(GeminiAiChatServiceImpl.normalizeModelName(null)).isEqualTo(GeminiAiChatServiceImpl.DEFAULT_MODEL);
+
+        assertThat(GeminiAiChatServiceImpl.normalizeBaseUrl("https://generativelanguage.googleapis.com/"))
+                .isEqualTo("https://generativelanguage.googleapis.com");
+        assertThat(GeminiAiChatServiceImpl.normalizeBaseUrl(null))
+                .isEqualTo("https://generativelanguage.googleapis.com");
+    }
+
+    @Test
+    @DisplayName("Test 15: testConnection executes successfully")
+    void testConnection_success() {
         String mockGeminiResponse = """
             {
               "candidates": [
                 {
                   "content": {
                     "parts": [
-                      {
-                        "text": "The verified knowledge base does not contain specific information for dragon fruit."
-                      }
+                      { "text": "Gemini connection successful" }
                     ],
                     "role": "model"
                   },
@@ -313,12 +423,43 @@ class GeminiAiChatServiceImplTest {
 
         mockServer.expect(requestTo(EXPECTED_URL))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(jsonPath("$.systemInstruction.parts[0].text").value(org.hamcrest.Matchers.containsString("No-Knowledge / Unknown Queries")))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
                 .andRespond(withSuccess(mockGeminiResponse, MediaType.APPLICATION_JSON));
 
-        String response = geminiService.generateResponse("How to grow dragon fruit?", PreferredLanguage.EN, null);
+        String result = geminiService.testConnection();
+        assertThat(result).isEqualTo("Gemini connection successful");
+        mockServer.verify();
+    }
 
-        assertThat(response).contains("verified knowledge base");
+    @Test
+    @DisplayName("Test 16: validateModel verifies model presence and supported generation methods")
+    void validateModel_success() {
+        String mockModelsListResponse = """
+            {
+              "models": [
+                {
+                  "name": "models/gemini-2.5-flash",
+                  "displayName": "Gemini 2.5 Flash",
+                  "supportedGenerationMethods": ["generateContent", "countTokens"]
+                },
+                {
+                  "name": "models/gemini-2.5-pro",
+                  "displayName": "Gemini 2.5 Pro",
+                  "supportedGenerationMethods": ["generateContent"]
+                }
+              ]
+            }
+            """;
+
+        mockServer.expect(requestTo("https://generativelanguage.googleapis.com/v1beta/models"))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header("x-goog-api-key", TEST_API_KEY))
+                .andRespond(withSuccess(mockModelsListResponse, MediaType.APPLICATION_JSON));
+
+        GeminiAiChatServiceImpl.ModelValidationResult result = geminiService.validateModel();
+        assertThat(result.valid()).isTrue();
+        assertThat(result.message()).contains("verified");
+        assertThat(result.availableModels()).contains("models/gemini-2.5-flash");
         mockServer.verify();
     }
 }

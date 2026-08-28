@@ -37,3 +37,6 @@ Thumbs.db
 # Log files
 *.log
 .vscode/
+
+# User upload files and runtime scan images
+uploads/

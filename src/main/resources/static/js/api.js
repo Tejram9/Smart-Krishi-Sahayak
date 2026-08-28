@@ -59,10 +59,55 @@ const Api = (() => {
     }
   }
 
+  async function upload(endpoint, formData, requiresAuth = true) {
+    const url = `${BASE_URL}${endpoint}`;
+    const headers = {
+      'Accept': 'application/json'
+    };
+
+    if (requiresAuth) {
+      const token = Auth.getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData
+      });
+      const isJson = response.headers.get('content-type')?.includes('application/json');
+      const responseData = isJson ? await response.json() : null;
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          Auth.clearAuth();
+          if (!window.location.pathname.endsWith('login.html') && !window.location.pathname.endsWith('register.html')) {
+            window.location.href = 'login.html?expired=true';
+          }
+        }
+        const errorMessage = responseData?.message || `HTTP Error ${response.status}`;
+        const error = new Error(errorMessage);
+        error.status = response.status;
+        error.responseData = responseData;
+        throw error;
+      }
+      return responseData;
+    } catch (error) {
+      if (!error.status) {
+        error.message = error.message || 'Unable to connect to the server.';
+      }
+      throw error;
+    }
+  }
+
   return {
     get: (endpoint, requiresAuth = true) => request(endpoint, 'GET', null, requiresAuth),
     post: (endpoint, data, requiresAuth = false) => request(endpoint, 'POST', data, requiresAuth),
     put: (endpoint, data, requiresAuth = true) => request(endpoint, 'PUT', data, requiresAuth),
-    delete: (endpoint, requiresAuth = true) => request(endpoint, 'DELETE', null, requiresAuth)
+    delete: (endpoint, requiresAuth = true) => request(endpoint, 'DELETE', null, requiresAuth),
+    upload: (endpoint, formData, requiresAuth = true) => upload(endpoint, formData, requiresAuth)
   };
 })();

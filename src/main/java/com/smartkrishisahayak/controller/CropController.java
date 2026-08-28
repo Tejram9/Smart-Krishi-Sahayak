@@ -30,7 +30,7 @@ public class CropController {
      * @param language preferred language (EN, MR, HI)
      * @return list of crop summaries
      */
-    @GetMapping
+    @GetMapping({"", "/search"})
     public ResponseEntity<ApiResponse<List<CropSummaryResponse>>> getAllCrops(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,

@@ -97,6 +97,63 @@
       </div>
     </div>
 
+    <!-- Weather Advisory Banner -->
+    <div id="weatherBannerCard" class="weather-widget-card mb-4" style="display: none;">
+      <div class="weather-header-row d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <div>
+          <h4 class="fw-bold mb-1"><i id="weatherMainIcon" class="bi bi-cloud-sun me-2 text-warning"></i> <span id="weatherLocation">Maharashtra</span> Weather & Climate Advisory</h4>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="badge bg-light text-primary fw-semibold" id="weatherSeasonBadge">Current Season</span>
+            <span class="badge bg-primary-subtle text-white small" id="weatherProviderBadge"><i class="bi bi-broadcast me-1"></i> Live Weather</span>
+          </div>
+        </div>
+        <div class="text-end mt-2 mt-md-0">
+          <div class="weather-temp-badge fs-2 fw-bold" id="weatherTempBadge">--°C</div>
+          <div class="small fw-semibold text-light" id="weatherCondition">Clear & Sunny</div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="row g-2 text-center mb-3">
+        <div class="col-6 col-md-3">
+          <div class="bg-white bg-opacity-25 rounded p-2 text-white">
+            <div class="small opacity-75"><i class="bi bi-droplet-half me-1"></i> Humidity</div>
+            <div class="fw-bold fs-6" id="weatherHumidity">--%</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white bg-opacity-25 rounded p-2 text-white">
+            <div class="small opacity-75"><i class="bi bi-cloud-rain me-1"></i> Rainfall</div>
+            <div class="fw-bold fs-6" id="weatherRainfall">-- mm</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white bg-opacity-25 rounded p-2 text-white">
+            <div class="small opacity-75"><i class="bi bi-wind me-1"></i> Wind Speed</div>
+            <div class="fw-bold fs-6" id="weatherWindSpeed">-- km/h</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white bg-opacity-25 rounded p-2 text-white">
+            <div class="small opacity-75"><i class="bi bi-thermometer-half me-1"></i> Feels Like</div>
+            <div class="fw-bold fs-6" id="weatherFeelsLike">--°C</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="weather-alert-box bg-white text-dark rounded p-3 shadow-sm d-flex flex-wrap justify-content-between align-items-center">
+        <div class="flex-grow-1 pe-md-3 mb-2 mb-md-0">
+          <div class="fw-bold text-primary mb-1"><i class="bi bi-info-circle me-1"></i> Agricultural Advisory:</div>
+          <p class="mb-0 small text-secondary" id="weatherGeneralAdvisory">Loading localized seasonal weather advisory...</p>
+        </div>
+        <div>
+          <button id="btnBannerOpenWeatherModal" class="btn btn-sm btn-primary px-3 fw-semibold">
+            <i class="bi bi-card-checklist me-1"></i> Full Advisory
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Agricultural Modules -->
     <h3 class="fw-bold mb-4 text-dark" data-i18n="dash_modules_title">Agricultural Services & Tools</h3>
 
@@ -107,7 +164,7 @@
         <h4 class="card-title text-success fw-bold" data-i18n="feature_ai_title">AI Farming Assistant</h4>
         <p class="card-desc" data-i18n="feature_ai_desc">Ask farming questions in Marathi, Hindi, and English to receive localized expert guidance.</p>
         <a href="/chatbot.html" class="btn-custom-primary mt-3 text-center justify-content-center text-decoration-none" data-i18n="btn_ask_ai">
-          <i class="bi bi-chat-dots-fill"></i> <span data-i18n="btn_ask_ai">Ask Smart Krishi Sahayak</span>
+          <i class="bi bi-chat-dots-fill"></i> <span>Ask Smart Krishi Sahayak</span>
         </a>
       </div>
 
@@ -117,35 +174,208 @@
         <h4 class="card-title text-success fw-bold" data-i18n="feature_crop_title">Crop Information Hub</h4>
         <p class="card-desc" data-i18n="feature_crop_desc">Detailed knowledge base on optimal sowing, irrigation, fertilizer dosage, and harvesting schedules.</p>
         <a href="/crop-info.html" class="btn-custom-primary mt-3 text-center justify-content-center text-decoration-none" data-i18n="btn_explore_crop">
-          <i class="bi bi-arrow-right-circle"></i> <span data-i18n="btn_explore_crop">Explore Crop Information</span>
+          <i class="bi bi-arrow-right-circle"></i> <span>Explore Crop Information</span>
         </a>
       </div>
 
-      <!-- Card 3: Disease Detection -->
-      <div class="card-custom">
-        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
-        <div class="card-icon-box"><i class="bi bi-camera-fill"></i></div>
-        <h4 class="card-title" data-i18n="feature_disease_title">Plant Disease Detection</h4>
-        <p class="card-desc" data-i18n="feature_disease_desc">Upload photos of affected leaves or crops to identify pests and diseases with recommended remedies.</p>
-      </div>
-
-      <!-- Card 4: Weather Guidance -->
-      <div class="card-custom">
-        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
-        <div class="card-icon-box"><i class="bi bi-cloud-sun-fill"></i></div>
-        <h4 class="card-title" data-i18n="feature_weather_title">Weather & Climate Alerts</h4>
-        <p class="card-desc" data-i18n="feature_weather_desc">Hyper-local weather forecasts and actionable farming advice during critical growth stages.</p>
-      </div>
-
-      <!-- Card 5: Crop Recommendation -->
-      <div class="card-custom">
-        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
-        <div class="card-icon-box"><i class="bi bi-flower1"></i></div>
-        <h4 class="card-title" data-i18n="feature_rec_title">Crop Recommendation</h4>
+      <!-- Card 3: Crop Recommendation (ACTIVE) -->
+      <div class="card-custom border-success-subtle shadow-sm">
+        <div class="card-icon-box bg-success text-white"><i class="bi bi-flower1"></i></div>
+        <h4 class="card-title text-success fw-bold" data-i18n="feature_rec_title">Crop Recommendation</h4>
         <p class="card-desc" data-i18n="feature_rec_desc">Soil-aware crop recommendations matching your district, land size, and seasonal water availability.</p>
+        <button id="btnOpenRecModal" class="btn-custom-primary mt-3 text-center justify-content-center border-0 w-100">
+          <i class="bi bi-lightbulb-fill"></i> <span>Get Crop Suggestions</span>
+        </button>
+      </div>
+
+      <!-- Card 4: Weather Guidance (ACTIVE) -->
+      <div class="card-custom border-success-subtle shadow-sm">
+        <div class="card-icon-box bg-success text-white"><i class="bi bi-cloud-sun-fill"></i></div>
+        <h4 class="card-title text-success fw-bold" data-i18n="feature_weather_title">Weather & Climate Alerts</h4>
+        <p class="card-desc" data-i18n="feature_weather_desc">Hyper-local weather forecasts and actionable farming advice during critical growth stages.</p>
+        <button id="btnOpenWeatherModal" class="btn-custom-primary mt-3 text-center justify-content-center border-0 w-100">
+          <i class="bi bi-eye-fill"></i> <span>View Full Weather Advisory</span>
+        </button>
+      </div>
+
+      <!-- Card 5: Disease Detection (ACTIVE) -->
+      <div class="card-custom border-danger-subtle shadow-sm">
+        <div class="card-icon-box bg-danger text-white"><i class="bi bi-camera-fill"></i></div>
+        <h4 class="card-title text-danger fw-bold" data-i18n="feature_disease_title">Plant Disease Detection</h4>
+        <p class="card-desc" data-i18n="feature_disease_desc">Upload photos of affected leaves or crops to identify pests and diseases with recommended remedies.</p>
+        <div class="d-flex gap-2 mt-3">
+          <button id="btnOpenDiseaseModal" class="btn-custom-primary text-center justify-content-center border-0 flex-grow-1">
+            <i class="bi bi-camera-fill"></i> <span data-i18n="btn_scan_disease">Scan Leaf Now</span>
+          </button>
+          <button id="btnOpenDiseaseHistory" class="btn btn-outline-secondary btn-sm px-3" title="View Scan History">
+            <i class="bi bi-clock-history"></i>
+          </button>
+        </div>
       </div>
     </div>
 
+  </div>
+
+  <!-- MODAL: Crop Recommendation Assistant -->
+  <div class="modal fade" id="cropRecModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title"><i class="bi bi-lightbulb-fill me-2"></i> Smart Crop Recommendation Engine</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="cropRecForm" class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Target Sowing Season *</label>
+              <select class="form-select" id="recSeason" required>
+                <option value="Kharif">Kharif (Monsoon)</option>
+                <option value="Rabi">Rabi (Winter)</option>
+                <option value="Zaid">Zaid (Summer)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Your Farm Soil Type *</label>
+              <select class="form-select" id="recSoil" required>
+                <option value="Black Soil">Deep Black Soil (काळी)</option>
+                <option value="Sandy Loam">Sandy Loam / Light Soil</option>
+                <option value="Red Soil">Red / Laterite Soil (तांबडी)</option>
+                <option value="Clay Loam">Clay Loam (गाळाची)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Water Availability *</label>
+              <select class="form-select" id="recWater" required>
+                <option value="Medium">Medium (Well / Canal / Drip)</option>
+                <option value="High">High (Abundant Irrigation)</option>
+                <option value="Rainfed">Rainfed / Low (पावसावर अवलंबून)</option>
+              </select>
+            </div>
+            <div class="col-12 text-end">
+              <button type="button" id="btnRunRecommendation" class="btn btn-success px-4 fw-semibold">
+                <i class="bi bi-magic me-1"></i> Recommend Suitable Crops
+              </button>
+            </div>
+          </form>
+
+          <div id="recResultsLoading" class="text-center py-4" style="display: none;">
+            <div class="spinner-border text-success"></div>
+            <p class="text-muted mt-2">Analyzing soil and seasonal suitability...</p>
+          </div>
+
+          <div id="recResultsContainer">
+            <!-- Dynamic recommendation cards inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Full Weather Advisory -->
+  <div class="modal fade" id="weatherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="bi bi-cloud-sun me-2"></i> Localized Weather & Seasonal Pest Advisory</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="weatherModalDetails">
+            <!-- Dynamic Weather Advisory details inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Plant Disease Detection & Diagnosis -->
+  <div class="modal fade" id="diseaseScanModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title"><i class="bi bi-camera-fill me-2"></i> AI Plant Disease Diagnostic Center</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="diseaseScanForm" class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Target Crop / Plant *</label>
+              <select class="form-select" id="diseaseCropSelect" required>
+                <option value="Tomato">Tomato (टोमॅटो / टमाटर)</option>
+                <option value="Cotton">Cotton (कापूस / कपास)</option>
+                <option value="Rice">Rice / Paddy (भात / धान)</option>
+                <option value="Wheat">Wheat (गहू / गेहूं)</option>
+                <option value="Potato">Potato (बटाटा / आलू)</option>
+                <option value="Grapes">Grapes (द्राक्षे / अंगूर)</option>
+                <option value="Soybean">Soybean (सोयाबीन)</option>
+                <option value="Sugarcane">Sugarcane (ऊस / गन्ना)</option>
+                <option value="General Crop">Other / General Crop</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Visible Symptoms / Notes (Optional)</label>
+              <input type="text" class="form-control" id="diseaseNotes" placeholder="e.g. brown circular spots on leaf edges">
+            </div>
+            
+            <div class="col-12">
+              <label class="form-label fw-semibold">Upload Affected Leaf Photo *</label>
+              <div id="diseaseDropZone" class="border border-2 border-dashed rounded p-4 text-center bg-light" style="cursor: pointer;">
+                <i class="bi bi-cloud-arrow-up display-5 text-secondary"></i>
+                <p class="mt-2 mb-1 fw-semibold">Click to browse or drag & drop leaf image</p>
+                <p class="small text-muted mb-0">Supported formats: JPG, JPEG, PNG, WEBP (Max 10MB)</p>
+                <input type="file" id="diseaseFileInput" accept="image/jpeg,image/png,image/webp,image/jpg" class="d-none" required>
+              </div>
+            </div>
+
+            <div id="diseasePreviewContainer" class="col-12 text-center" style="display: none;">
+              <div class="position-relative d-inline-block border rounded p-1 shadow-sm">
+                <img id="diseaseImagePreview" src="#" alt="Leaf Preview" class="img-fluid rounded" style="max-height: 220px; object-fit: cover;">
+                <button type="button" id="btnRemoveImage" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle" title="Remove image">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+              <div id="diseaseFileNameDisplay" class="small text-muted mt-1 fw-semibold"></div>
+            </div>
+
+            <div class="col-12 text-end">
+              <button type="button" id="btnRunDiseaseScan" class="btn btn-danger px-4 fw-semibold">
+                <i class="bi bi-cpu me-1"></i> Analyze & Diagnose Disease
+              </button>
+            </div>
+          </form>
+
+          <div id="diseaseScanLoading" class="text-center py-4" style="display: none;">
+            <div class="spinner-border text-danger" role="status"></div>
+            <p class="text-muted mt-2 fw-semibold">Scanning leaf pixels and diagnosing disease with agricultural knowledge base...</p>
+          </div>
+
+          <div id="diseaseScanResultContainer" style="display: none;">
+            <!-- Dynamic Result Card -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Disease Detection History -->
+  <div class="modal fade" id="diseaseHistoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i> Disease Diagnostic Scan History</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="diseaseHistoryLoading" class="text-center py-4">
+            <div class="spinner-border text-primary"></div>
+            <p class="text-muted mt-2">Loading previous scans...</p>
+          </div>
+          <div id="diseaseHistoryContainer">
+            <!-- Dynamic Scan History List -->
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Footer -->

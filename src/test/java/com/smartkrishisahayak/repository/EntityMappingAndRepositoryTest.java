@@ -126,4 +126,39 @@ class EntityMappingAndRepositoryTest {
         assertThat(publishedArticles).hasSize(1);
         assertThat(publishedArticles.get(0).getTitle()).isEqualTo("द्राक्षावरील भुरी रोग व्यवस्थापन");
     }
+
+    @Autowired
+    private DiseaseDetectionRepository diseaseDetectionRepository;
+
+    @Test
+    @DisplayName("Test DiseaseDetection Mapping and Repository Persistence")
+    void testDiseaseDetectionMappingAndRepository() {
+        User farmer = new User("गणेश देशमुख", "9822334455", "$2a$10$hash", PreferredLanguage.MR, UserRole.ROLE_FARMER);
+        userRepository.save(farmer);
+
+        DiseaseDetection scan = new DiseaseDetection(
+                farmer,
+                "Tomato",
+                "leaf_123.jpg",
+                "uploads/disease-scans/leaf_123.jpg",
+                "Tomato Early Blight",
+                "Alternaria solani",
+                95.4,
+                "MEDIUM",
+                "Concentric brown rings",
+                "Trichoderma spray",
+                "Mancozeb 75 WP",
+                "Crop rotation"
+        );
+
+        DiseaseDetection savedScan = diseaseDetectionRepository.save(scan);
+        assertThat(savedScan.getId()).isNotNull();
+        assertThat(savedScan.getDiseaseName()).isEqualTo("Tomato Early Blight");
+        assertThat(savedScan.getDetectedAt()).isNotNull();
+
+        List<DiseaseDetection> list = diseaseDetectionRepository.findByUserIdOrderByDetectedAtDesc(farmer.getId());
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).getCropName()).isEqualTo("Tomato");
+        assertThat(diseaseDetectionRepository.countByUserId(farmer.getId())).isEqualTo(1);
+    }
 }

@@ -10,11 +10,17 @@ spring:
   application:
     name: smart-krishi-sahayak
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:krishi_db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:krishi_db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:com.mysql.cj.jdbc.Driver}
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
@@ -47,9 +53,16 @@ app:
     secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   ai:
-    provider: ${AI_PROVIDER:mock}
+    provider: ${AI_PROVIDER:gemini}
     gemini:
       api-key: ${GEMINI_API_KEY:}
-      model: ${GEMINI_MODEL:gemini-1.5-flash}
+      model: ${GEMINI_MODEL:gemini-2.5-flash}
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
-      timeout-ms: ${GEMINI_TIMEOUT_MS:15000}
+      timeout-ms: ${GEMINI_TIMEOUT_MS:30000}
+  weather:
+    provider: ${WEATHER_PROVIDER:open-meteo}
+    api-key: ${WEATHER_API_KEY:}
+    base-url: ${WEATHER_BASE_URL:https://api.open-meteo.com/v1}
+    timeout-ms: ${WEATHER_TIMEOUT_MS:5000}
+    cache-ttl-minutes: ${WEATHER_CACHE_TTL_MINUTES:15}
+

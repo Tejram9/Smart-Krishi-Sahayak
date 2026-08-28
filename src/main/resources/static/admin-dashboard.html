@@ -8,6 +8,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Custom Styles -->
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/dashboard.css">
@@ -79,43 +81,282 @@
       </div>
     </div>
 
-    <!-- Management Console Modules -->
-    <h3 class="fw-bold mb-4 text-dark" data-i18n="admin_modules_title">Management Console</h3>
+    <!-- Management Console Navigation Tabs -->
+    <div class="admin-nav-tabs">
+      <button class="admin-tab-btn active" data-tab="tab-overview">
+        <i class="bi bi-speedometer2"></i> <span>Overview & Analytics</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-users">
+        <i class="bi bi-people-fill"></i> <span>Farmer Users</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-crops">
+        <i class="bi bi-tree-fill"></i> <span>Crop Catalog</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-chats">
+        <i class="bi bi-chat-left-dots-fill"></i> <span>AI Chat Audit</span>
+      </button>
+    </div>
 
-    <div class="module-grid">
-      <!-- Module 1: User Management -->
-      <div class="card-custom">
-        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
-        <div class="card-icon-box text-warning"><i class="bi bi-people-fill"></i></div>
-        <h4 class="card-title" data-i18n="admin_user_mgmt">User Management</h4>
-        <p class="card-desc">View registered farmers, manage account statuses, and grant administrative access.</p>
+    <!-- TAB 1: Overview & Analytics -->
+    <div id="tab-overview" class="admin-tab-pane">
+      <!-- Quick Stats Grid -->
+      <div class="admin-stat-grid">
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-green"><i class="bi bi-person-check-fill"></i></div>
+          <div class="admin-stat-info">
+            <h3 id="statTotalFarmers">0</h3>
+            <p>Registered Farmers</p>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-blue"><i class="bi bi-chat-square-quote-fill"></i></div>
+          <div class="admin-stat-info">
+            <h3 id="statTotalQueries">0</h3>
+            <p>AI Queries Answered</p>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-orange"><i class="bi bi-flower2"></i></div>
+          <div class="admin-stat-info">
+            <h3 id="statTotalCrops">0</h3>
+            <p>Verified Crops</p>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-purple"><i class="bi bi-journal-check"></i></div>
+          <div class="admin-stat-info">
+            <h3 id="statTotalAdvisories">0</h3>
+            <p>Published Advisories</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Module 2: Crop Catalog -->
-      <div class="card-custom">
-        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
-        <div class="card-icon-box text-warning"><i class="bi bi-tree"></i></div>
-        <h4 class="card-title" data-i18n="admin_crop_mgmt">Crop Catalog Management</h4>
-        <p class="card-desc">Maintain agronomic metadata, crop calendars, and verified advisory content.</p>
-      </div>
-
-      <!-- Module 3: Chat History Audit -->
-      <div class="card-custom">
-        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
-        <div class="card-icon-box text-warning"><i class="bi bi-card-checklist"></i></div>
-        <h4 class="card-title" data-i18n="admin_chat_mon">Chat History & AI Audit</h4>
-        <p class="card-desc">Monitor AI response accuracy, review farmer query logs, and audit advisory quality.</p>
-      </div>
-
-      <!-- Module 4: Analytics -->
-      <div class="card-custom">
-        <span class="badge-coming-soon" data-i18n="badge_coming_soon">Coming Soon</span>
-        <div class="card-icon-box text-warning"><i class="bi bi-bar-chart-line-fill"></i></div>
-        <h4 class="card-title" data-i18n="admin_analytics">Analytics & Usage Insights</h4>
-        <p class="card-desc">System usage trends, active user metrics, and district-level advisory analytics.</p>
+      <!-- Charts Grid -->
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-title"><i class="bi bi-graph-up text-success"></i> Query Activity Trend (Past 7 Days)</div>
+          <canvas id="queryTrendChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title"><i class="bi bi-pie-chart text-primary"></i> User Language Preferences</div>
+          <canvas id="langDistChart" height="220"></canvas>
+        </div>
       </div>
     </div>
 
+    <!-- TAB 2: Farmer Users Management -->
+    <div id="tab-users" class="admin-tab-pane" style="display: none;">
+      <div class="admin-table-card">
+        <div class="admin-table-header">
+          <h4><i class="bi bi-people me-2"></i> Registered Farmers List</h4>
+          <div class="d-flex gap-2">
+            <input type="text" id="userSearchInput" class="form-control form-control-sm" placeholder="Search by name, mobile, district..." style="width: 260px;">
+            <button id="userSearchBtn" class="btn btn-sm btn-success"><i class="bi bi-search"></i> Search</button>
+          </div>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Mobile</th>
+                <th>Language</th>
+                <th>Location</th>
+                <th>Land Size</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="8" class="text-center py-4 text-muted">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Crop Catalog Management -->
+    <div id="tab-crops" class="admin-tab-pane" style="display: none;">
+      <div class="admin-table-card">
+        <div class="admin-table-header">
+          <h4><i class="bi bi-tree me-2"></i> Crop Catalog & Verified Advisories</h4>
+          <button class="btn btn-sm btn-success" id="btnOpenAddCropModal">
+            <i class="bi bi-plus-circle me-1"></i> Add New Crop
+          </button>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Crop (EN / MR / HI)</th>
+                <th>Category</th>
+                <th>Season</th>
+                <th>Soil Requirements</th>
+                <th>Water Requirement</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cropsTableBody">
+              <tr><td colspan="7" class="text-center py-4 text-muted">Loading crops...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: AI Chat Audit Logs -->
+    <div id="tab-chats" class="admin-tab-pane" style="display: none;">
+      <div class="admin-table-card">
+        <div class="admin-table-header">
+          <h4><i class="bi bi-card-checklist me-2"></i> AI Chatbot Query Audit Trail</h4>
+          <button id="btnRefreshQueries" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh Logs
+          </button>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Farmer</th>
+                <th>Language</th>
+                <th>Farmer Query</th>
+                <th>AI Response (Preview)</th>
+              </tr>
+            </thead>
+            <tbody id="chatQueriesTableBody">
+              <tr><td colspan="5" class="text-center py-4 text-muted">Loading audit logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL: Add / Edit Crop -->
+  <div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="cropModalTitle"><i class="bi bi-flower1 me-2"></i> Add New Crop</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="cropForm">
+            <input type="hidden" id="cropFormId">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">English Name *</label>
+                <input type="text" class="form-control" id="cropNameEn" required placeholder="e.g. Cotton">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Marathi Name (मराठी) *</label>
+                <input type="text" class="form-control" id="cropNameMr" required placeholder="e.g. कापूस">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Hindi Name (हिंदी) *</label>
+                <input type="text" class="form-control" id="cropNameHi" required placeholder="e.g. कपास">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Category *</label>
+                <select class="form-select" id="cropCategory" required>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Cereals">Cereals</option>
+                  <option value="Pulses">Pulses</option>
+                  <option value="Vegetables">Vegetables</option>
+                  <option value="Fruits">Fruits</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Suitable Season *</label>
+                <select class="form-select" id="cropSeason" required>
+                  <option value="Kharif">Kharif (Monsoon)</option>
+                  <option value="Rabi">Rabi (Winter)</option>
+                  <option value="Zaid">Zaid (Summer)</option>
+                  <option value="Perennial">Perennial / All Season</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Soil Requirements</label>
+                <input type="text" class="form-control" id="cropSoil" placeholder="e.g. Deep black cotton soil, well-drained">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Water Requirement</label>
+                <input type="text" class="form-control" id="cropWater" placeholder="e.g. Medium (500-700 mm)">
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Agronomic Description</label>
+                <textarea class="form-control" id="cropDesc" rows="3" placeholder="Overview of crop cultivation in Maharashtra..."></textarea>
+              </div>
+            </div>
+            <div id="cropFormError" class="alert alert-danger mt-3" style="display: none;"></div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-success" id="btnSaveCrop">Save Crop</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Advisory / Guidance -->
+  <div class="modal fade" id="guidanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="guidanceModalTitle"><i class="bi bi-journal-plus me-2"></i> Add Verified Advisory</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="guidanceForm">
+            <input type="hidden" id="guidanceCropId">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="form-label fw-semibold">Advisory Title *</label>
+                <input type="text" class="form-control" id="guidanceTitle" required placeholder="e.g. Pink Bollworm IPM Guidance">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Language *</label>
+                <select class="form-select" id="guidanceLanguage" required>
+                  <option value="EN">English (EN)</option>
+                  <option value="MR">मराठी (MR)</option>
+                  <option value="HI">हिंदी (HI)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Category *</label>
+                <select class="form-select" id="guidanceCategory" required>
+                  <option value="Pest Control">Pest Control</option>
+                  <option value="Irrigation">Irrigation</option>
+                  <option value="Fertilizer">Fertilizer Management</option>
+                  <option value="Disease Control">Disease Control</option>
+                  <option value="Sowing">Sowing & Varieties</option>
+                </select>
+              </div>
+              <div class="col-md-6 d-flex align-items-center mt-4">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="guidancePublished" checked>
+                  <label class="form-check-label fw-semibold" for="guidancePublished">Publish Immediately</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Advisory Content Body *</label>
+                <textarea class="form-control" id="guidanceBody" rows="5" required placeholder="Detailed step-by-step agricultural recommendations..."></textarea>
+              </div>
+            </div>
+            <div id="guidanceFormError" class="alert alert-danger mt-3" style="display: none;"></div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveGuidance">Save Advisory</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Footer -->

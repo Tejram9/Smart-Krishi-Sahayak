@@ -1,6 +1,7 @@
 package com.smartkrishisahayak.repository;
 
 import com.smartkrishisahayak.entity.ChatMessage;
+import com.smartkrishisahayak.entity.enums.MessageSender;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,4 +10,7 @@ import java.util.List;
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     List<ChatMessage> findByChatSessionIdOrderByTimestampAsc(Long sessionId);
+    long countBySender(MessageSender sender);
+    List<ChatMessage> findTop100ByOrderByTimestampDesc();
+    List<ChatMessage> findBySenderOrderByTimestampDesc(MessageSender sender);
 }

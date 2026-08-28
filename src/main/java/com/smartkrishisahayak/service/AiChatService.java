@@ -28,4 +28,28 @@ public interface AiChatService {
      * @return generated response text
      */
     String generateResponse(String userQuery, PreferredLanguage language, String verifiedContext);
+
+    /**
+     * Get the active provider identifier (e.g., "gemini", "mock").
+     */
+    String getProviderName();
+
+    /**
+     * Get the active model identifier.
+     */
+    String getModelName();
+
+    /**
+     * Check if the API key is configured.
+     */
+    boolean isApiKeyConfigured();
+
+    /**
+     * Perform a live diagnostic test request.
+     *
+     * @return generated response string
+     */
+    default String testConnection() {
+        return generateResponse("Reply with exactly: Gemini connection successful", PreferredLanguage.EN);
+    }
 }

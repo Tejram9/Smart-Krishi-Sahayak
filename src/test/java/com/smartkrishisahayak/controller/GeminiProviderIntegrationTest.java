@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(properties = {
         "app.ai.provider=gemini",
         "app.ai.gemini.api-key=test-gemini-api-key",
-        "app.ai.gemini.model=gemini-1.5-flash",
+        "app.ai.gemini.model=gemini-2.5-flash",
         "app.ai.gemini.timeout-ms=20000"
 })
 @ActiveProfiles("test")
@@ -30,7 +30,7 @@ class GeminiProviderIntegrationTest {
                 .isInstanceOf(GeminiAiChatServiceImpl.class);
 
         GeminiAiChatServiceImpl geminiService = (GeminiAiChatServiceImpl) activeAiChatService;
-        assertThat(geminiService.getModel()).isEqualTo("gemini-1.5-flash");
+        assertThat(geminiService.getModel()).isEqualTo("gemini-2.5-flash");
         assertThat(geminiService.getTimeoutMs()).isEqualTo(20000);
     }
 }

@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service;
  * DEVELOPMENT / OFFLINE mock implementation of {@link AiChatService}.
  * Returns a predefined agriculture placeholder message in EN, MR, or HI.
  * No network calls. No API keys required.
- * Activated by default when app.ai.provider is 'mock' or missing.
+ * Activated explicitly when app.ai.provider is 'mock'.
  *
  * <p><b>IMPORTANT:</b> The responses produced here are development mocks, not real agricultural advice.
  */
 @Service
-@ConditionalOnProperty(name = "app.ai.provider", havingValue = "mock", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.ai.provider", havingValue = "mock")
 public class MockAiChatServiceImpl implements AiChatService {
 
     private static final Logger log = LoggerFactory.getLogger(MockAiChatServiceImpl.class);
@@ -37,6 +37,21 @@ public class MockAiChatServiceImpl implements AiChatService {
             "तत्काल मार्गदर्शन के लिए कृपया अपने स्थानीय कृषि सेवा केंद्र से संपर्क करें.";
 
     @Override
+    public String getProviderName() {
+        return "mock";
+    }
+
+    @Override
+    public String getModelName() {
+        return "mock-ai-v1";
+    }
+
+    @Override
+    public boolean isApiKeyConfigured() {
+        return true;
+    }
+
+    @Override
     public String generateResponse(String userQuery, PreferredLanguage language) {
         return generateResponse(userQuery, language, null);
     }
@@ -53,5 +68,10 @@ public class MockAiChatServiceImpl implements AiChatService {
             case HI -> MOCK_HI;
             default -> MOCK_EN;
         };
+    }
+
+    @Override
+    public String testConnection() {
+        return "Gemini connection successful (Mock Provider)";
     }
 }
