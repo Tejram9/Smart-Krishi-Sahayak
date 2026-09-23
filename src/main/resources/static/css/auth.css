@@ -157,3 +157,54 @@
   height: 1rem;
   border-width: 0.15em;
 }
+
+/* Role Selector Tabs (Farmer / Admin) */
+.role-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: var(--radius-md);
+  padding: 4px;
+  margin-bottom: 1.75rem;
+  gap: 4px;
+}
+
+.role-tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.role-tab-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-dark);
+}
+
+.role-tab-btn.active {
+  background: white;
+  color: var(--primary-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.role-tab-btn.active.admin-active {
+  color: #1e3a8a;
+}
+
+/* OTP code input styling */
+.otp-input-group {
+  letter-spacing: 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-align: center;
+}
+

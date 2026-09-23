@@ -40,3 +40,4 @@ Thumbs.db
 
 # User upload files and runtime scan images
 uploads/
+data/

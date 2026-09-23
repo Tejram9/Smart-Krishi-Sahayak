@@ -24,6 +24,13 @@ const Auth = (() => {
     localStorage.removeItem(USER_KEY);
   }
 
+  function updateCurrentUser(updates) {
+    const user = getCurrentUser();
+    if (!user) return;
+    Object.assign(user, updates);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+
   function getToken() {
     return localStorage.getItem(TOKEN_KEY);
   }
@@ -46,9 +53,17 @@ const Auth = (() => {
     return !!getToken();
   }
 
-  function logout() {
-    clearAuth();
-    window.location.href = 'login.html';
+  async function logout() {
+    try {
+      if (getToken() && typeof Api !== 'undefined') {
+        await Api.post('/api/v1/auth/logout', null, true);
+      }
+    } catch (e) {
+      console.warn('Backend logout notification failed, clearing local session:', e);
+    } finally {
+      clearAuth();
+      window.location.href = 'login.html';
+    }
   }
 
   function redirectByRole(roleOverride) {
@@ -85,6 +100,7 @@ const Auth = (() => {
   return {
     setAuth,
     clearAuth,
+    updateCurrentUser,
     getToken,
     getCurrentUser,
     getRole,

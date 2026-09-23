@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/krishi_db;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+app:
+  environment: local
+  admin:
+    mobile: "9999999999"
+    email: "admin@smartkrishi.gov.in"
+    password: "Admin@SecurePass2026"
+  jwt:
+    secret: c7b5a8e2d4f10938b65e21a4f0739c68c7b5a8e2d4f10938b65e21a4f0739c68
+    expiration-ms: 86400000

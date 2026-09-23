@@ -17,8 +17,12 @@ spring:
 
 app:
   jwt:
-    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    secret: 9876543210abcdef0123456789abcdef0123456789abcdef0123456789abcdef
     expiration-ms: 3600000
+  admin:
+    mobile: "9999999999"
+    email: "admin@smartkrishi.gov.in"
+    password: "TestAdmin@SecurePass123"
   ai:
     provider: mock
   weather:

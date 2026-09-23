@@ -31,4 +31,12 @@ public interface AdminService {
     List<AdminChatQueryResponse> getChatQueries(int limit);
 
     AdminStatsResponse getSystemStats();
+
+    com.smartkrishisahayak.dto.response.AdminDetailedAnalyticsResponse getDetailedAnalytics();
+
+    List<com.smartkrishisahayak.dto.response.UserReportResponse> getAllReports(String status, String category, String search, int limit);
+
+    com.smartkrishisahayak.dto.response.UserReportResponse updateReportStatus(Long reportId, com.smartkrishisahayak.dto.request.AdminReportUpdateRequest request);
+
+    List<com.smartkrishisahayak.dto.response.UserLoginActivityResponse> getLoginActivities(String filter, String role, String search, int limit);
 }

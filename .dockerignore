@@ -1,0 +1,23 @@
+# Git and IDE metadata
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+
+# Build artifacts
+target/
+*.log
+
+# Sensitive environment files and local secrets
+.env
+.env.*
+*.env
+
+# Runtime upload storage and local test databases
+uploads/
+data/
+
+# Documentation and temporary files
+*.md
+!README.md

@@ -69,7 +69,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public Endpoints
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/verify-reset-token",
+                                "/api/v1/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/health", "/api/v1/ai/health", "/api/ai/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/disease/images/**", "/api/disease/images/**", "/uploads/**").permitAll()
                         .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/lang/**", "/assets/**", "/images/**", "/favicon.ico").permitAll()

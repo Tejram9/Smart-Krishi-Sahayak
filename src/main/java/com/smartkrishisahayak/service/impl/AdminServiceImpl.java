@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,18 +39,30 @@ public class AdminServiceImpl implements AdminService {
     private final CropRepository cropRepository;
     private final VerifiedAgricultureContentRepository contentRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final com.smartkrishisahayak.service.ReportService reportService;
+    private final com.smartkrishisahayak.service.UserActivityService userActivityService;
+    private final com.smartkrishisahayak.repository.UserReportRepository userReportRepository;
+    private final com.smartkrishisahayak.repository.UserLoginActivityRepository userLoginActivityRepository;
 
     @Autowired
     public AdminServiceImpl(UserRepository userRepository,
                             FarmerProfileRepository farmerProfileRepository,
                             CropRepository cropRepository,
                             VerifiedAgricultureContentRepository contentRepository,
-                            ChatMessageRepository chatMessageRepository) {
+                            ChatMessageRepository chatMessageRepository,
+                            com.smartkrishisahayak.service.ReportService reportService,
+                            com.smartkrishisahayak.service.UserActivityService userActivityService,
+                            com.smartkrishisahayak.repository.UserReportRepository userReportRepository,
+                            com.smartkrishisahayak.repository.UserLoginActivityRepository userLoginActivityRepository) {
         this.userRepository = userRepository;
         this.farmerProfileRepository = farmerProfileRepository;
         this.cropRepository = cropRepository;
         this.contentRepository = contentRepository;
         this.chatMessageRepository = chatMessageRepository;
+        this.reportService = reportService;
+        this.userActivityService = userActivityService;
+        this.userReportRepository = userReportRepository;
+        this.userLoginActivityRepository = userLoginActivityRepository;
     }
 
     @Override
@@ -341,6 +354,127 @@ public class AdminServiceImpl implements AdminService {
                 crop.getUpdatedAt(),
                 contents
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserReportResponse> getAllReports(String status, String category, String search, int limit) {
+        return reportService.getAllReports(status, category, search, limit);
+    }
+
+    @Override
+    @Transactional
+    public UserReportResponse updateReportStatus(Long reportId, com.smartkrishisahayak.dto.request.AdminReportUpdateRequest request) {
+        return reportService.updateReportStatus(reportId, request);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserLoginActivityResponse> getLoginActivities(String filter, String role, String search, int limit) {
+        return userActivityService.getFilteredActivities(filter, role, search, limit);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminDetailedAnalyticsResponse getDetailedAnalytics() {
+        log.debug("Compiling comprehensive analytics metrics for admin dashboard");
+
+        AdminDetailedAnalyticsResponse response = new AdminDetailedAnalyticsResponse();
+
+        // 1. User Statistics
+        List<User> allUsers = userRepository.findAll();
+        long farmersCount = allUsers.stream().filter(u -> u.getRole() == UserRole.ROLE_FARMER).count();
+        long adminsCount = allUsers.stream().filter(u -> u.getRole() == UserRole.ROLE_ADMIN).count();
+        response.setTotalFarmers(farmersCount);
+        response.setTotalAdmins(adminsCount);
+
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        // User registration trend past 7 days
+        Map<String, Long> regMap = new LinkedHashMap<>();
+        for (int i = 6; i >= 0; i--) {
+            regMap.put(today.minusDays(i).format(dtf), 0L);
+        }
+        for (User u : allUsers) {
+            if (u.getCreatedAt() != null) {
+                String d = u.getCreatedAt().toLocalDate().format(dtf);
+                if (regMap.containsKey(d)) {
+                    regMap.put(d, regMap.get(d) + 1L);
+                }
+            }
+        }
+        response.setRegistrationTrend(
+                regMap.entrySet().stream()
+                        .map(e -> new AdminDetailedAnalyticsResponse.TimePointStat(e.getKey(), e.getValue()))
+                        .collect(Collectors.toList())
+        );
+
+        // 2. Report Statistics
+        long totalReports = userReportRepository.count();
+        long pendingReports = userReportRepository.countByStatus(com.smartkrishisahayak.entity.enums.ReportStatus.PENDING);
+        long inProgressReports = userReportRepository.countByStatus(com.smartkrishisahayak.entity.enums.ReportStatus.IN_PROGRESS);
+        long resolvedReports = userReportRepository.countByStatus(com.smartkrishisahayak.entity.enums.ReportStatus.RESOLVED);
+        long rejectedReports = userReportRepository.countByStatus(com.smartkrishisahayak.entity.enums.ReportStatus.REJECTED);
+
+        response.setTotalReports(totalReports);
+        response.setPendingReports(pendingReports);
+        response.setInProgressReports(inProgressReports);
+        response.setResolvedReports(resolvedReports);
+        response.setRejectedReports(rejectedReports);
+
+        Map<String, Long> reportsByStatus = new LinkedHashMap<>();
+        reportsByStatus.put("Pending", pendingReports);
+        reportsByStatus.put("In Progress", inProgressReports);
+        reportsByStatus.put("Resolved", resolvedReports);
+        reportsByStatus.put("Rejected", rejectedReports);
+        response.setReportsByStatus(reportsByStatus);
+
+        Map<String, Long> reportsByCategory = new LinkedHashMap<>();
+        for (com.smartkrishisahayak.entity.enums.ReportCategory cat : com.smartkrishisahayak.entity.enums.ReportCategory.values()) {
+            reportsByCategory.put(cat.getDisplayName(), userReportRepository.countByCategory(cat));
+        }
+        response.setReportsByCategory(reportsByCategory);
+
+        // 3. Login Activity Statistics
+        LocalDateTime startOfToday = today.atStartOfDay();
+        long todayLogins = userLoginActivityRepository.countByLoginTimeAfter(startOfToday);
+        long activeSessions = userLoginActivityRepository.countByStatus(com.smartkrishisahayak.entity.enums.SessionStatus.ACTIVE);
+        response.setTodayLogins(todayLogins);
+        response.setActiveSessions(activeSessions);
+
+        // Daily login trend past 7 days
+        Map<String, Long> loginMap = new LinkedHashMap<>();
+        for (int i = 6; i >= 0; i--) {
+            LocalDate day = today.minusDays(i);
+            LocalDateTime dayStart = day.atStartOfDay();
+            LocalDateTime dayEnd = day.plusDays(1).atStartOfDay();
+            loginMap.put(day.format(dtf), userLoginActivityRepository.countBetween(dayStart, dayEnd));
+        }
+        response.setLoginTrend(
+                loginMap.entrySet().stream()
+                        .map(e -> new AdminDetailedAnalyticsResponse.TimePointStat(e.getKey(), e.getValue()))
+                        .collect(Collectors.toList())
+        );
+
+        // 4. Existing System Overview
+        response.setTotalQueriesAnswered(chatMessageRepository.countBySender(MessageSender.AI));
+        response.setTotalCropsManaged(cropRepository.count());
+        response.setTotalAdvisoriesPublished(contentRepository.count());
+
+        Map<String, Long> langMap = new HashMap<>();
+        langMap.put("MR", 0L);
+        langMap.put("HI", 0L);
+        langMap.put("EN", 0L);
+        for (User u : allUsers) {
+            if (u.getPreferredLanguage() != null) {
+                String code = u.getPreferredLanguage().name();
+                langMap.put(code, langMap.getOrDefault(code, 0L) + 1L);
+            }
+        }
+        response.setLanguageDistribution(langMap);
+
+        return response;
     }
 
     private AgricultureContentResponse mapToContentResponse(VerifiedAgricultureContent content) {

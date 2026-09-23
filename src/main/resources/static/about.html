@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us - Smart Krishi Sahayak</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .about-hero {
+      background: linear-gradient(135deg, rgba(27, 94, 32, 0.95), rgba(46, 125, 50, 0.85)), url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+      color: white;
+      padding: 4.5rem 1rem 3.5rem;
+      text-align: center;
+    }
+    .about-section {
+      padding: 3.5rem 0;
+    }
+    .feature-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      height: 100%;
+      transition: var(--transition-fast);
+    }
+    .feature-box:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+    .team-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      height: 100%;
+      transition: var(--transition-fast);
+      position: relative;
+    }
+    .team-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary-color);
+    }
+    .team-avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #e8f5e9;
+      color: var(--primary-color);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.25rem;
+      margin-bottom: 1.25rem;
+      border: 3px solid #c8e6c9;
+    }
+    .team-role {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05rem;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+    .team-name {
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--text-dark);
+      margin-bottom: 0.25rem;
+    }
+    .team-id-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      background: #f1f5f9;
+      color: #475569;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-bottom: 0.75rem;
+    }
+    .team-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+    .team-socials a {
+      color: #64748b;
+      font-size: 1.25rem;
+      margin: 0 0.4rem;
+      transition: color 0.2s;
+    }
+    .team-socials a:hover {
+      color: var(--primary-color);
+    }
+    .tech-pill {
+      display: inline-block;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 0.4rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #334155;
+      margin: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container-fluid max-width-container">
+      <a class="navbar-brand-text" href="/index.html">
+        <span class="brand-icon"><i class="bi bi-tree-fill"></i></span>
+        <span data-i18n="app_name">Smart Krishi Sahayak</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+          <li class="nav-item">
+            <a class="nav-link" href="/index.html">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/about.html">About Us</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/crop-info.html">Crop Catalog</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/login.html">Login</a>
+          </li>
+          <li class="nav-item ms-lg-2">
+            <a class="btn btn-sm btn-custom-primary text-white" href="/register.html">Register</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- About Hero -->
+  <header class="about-hero">
+    <div class="container">
+      <div class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3 shadow-sm">
+        <i class="bi bi-mortarboard-fill me-1"></i> Community Engagement Project (CEP)
+      </div>
+      <h1 class="display-5 fw-bold mb-3">About Smart Krishi Sahayak</h1>
+      <p class="lead max-w-75 mx-auto" style="max-width: 800px; opacity: 0.95;">
+        A multilingual, precision agricultural intelligence system bridging scientific agronomy and grassroots farming through modern technology and Artificial Intelligence.
+      </p>
+    </div>
+  </header>
+
+  <!-- Project Overview & Purpose -->
+  <section class="about-section bg-light">
+    <div class="container">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-6">
+          <div class="pe-lg-4">
+            <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-1 rounded-pill mb-2">Our Mission</span>
+            <h2 class="fw-bold mb-3 text-dark">Empowering Indian Farmers with Real-Time Agronomic Knowledge</h2>
+            <p class="text-secondary leading-relaxed mb-3">
+              Agriculture is the backbone of India, engaging over 50% of the national workforce. However, smallholder and marginal farmers often face severe yield losses due to untimely pest attacks, erratic weather patterns, lack of localized soil awareness, and linguistic barriers in accessing modern agricultural literature.
+            </p>
+            <p class="text-secondary leading-relaxed">
+              <strong>Smart Krishi Sahayak</strong> was created as a collegiate Community Engagement Project by Computer Science & Engineering students to deliver accessible, actionable, and scientific precision farming advice in native Indian languages (<strong>मराठी, हिंदी, English</strong>).
+            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="feature-box">
+                <div class="fs-2 text-success mb-2"><i class="bi bi-translate"></i></div>
+                <h5 class="fw-bold text-dark">Native Multilingual</h5>
+                <p class="text-muted small mb-0">Seamless switching across Marathi, Hindi, and English so every farmer understands instructions without barriers.</p>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="feature-box">
+                <div class="fs-2 text-primary mb-2"><i class="bi bi-robot"></i></div>
+                <h5 class="fw-bold text-dark">AI Agronomist</h5>
+                <p class="text-muted small mb-0">Context-aware chatbot powered by LLM and domain-grounded knowledge for crop, pest, and soil management.</p>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="feature-box">
+                <div class="fs-2 text-warning mb-2"><i class="bi bi-cloud-sun"></i></div>
+                <h5 class="fw-bold text-dark">Weather & Climate</h5>
+                <p class="text-muted small mb-0">Hyper-local meteorological alerts and stage-specific advisories to protect against frost, rain, and heat stress.</p>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="feature-box">
+                <div class="fs-2 text-danger mb-2"><i class="bi bi-camera-fill"></i></div>
+                <h5 class="fw-bold text-dark">Disease Diagnostic</h5>
+                <p class="text-muted small mb-0">Image-based plant disease detection offering both organic remedies and chemical integrated pest management.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technology Stack -->
+  <section class="about-section">
+    <div class="container text-center">
+      <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-3 py-1 rounded-pill mb-2">Modern Architecture</span>
+      <h2 class="fw-bold mb-4 text-dark">Production-Grade Technology Stack</h2>
+      <p class="text-muted mb-4 mx-auto" style="max-width: 700px;">
+        Designed using a decoupled RESTful architecture ready to power web and future Flutter mobile apps without structural re-engineering.
+      </p>
+
+      <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+        <span class="tech-pill"><i class="bi bi-cup-hot-fill text-danger me-1"></i> Java 17</span>
+        <span class="tech-pill"><i class="bi bi-gear-fill text-success me-1"></i> Spring Boot 3.2.5</span>
+        <span class="tech-pill"><i class="bi bi-shield-check text-primary me-1"></i> Spring Security 6 (JWT)</span>
+        <span class="tech-pill"><i class="bi bi-database-fill text-info me-1"></i> MySQL 8.0 & Hibernate 6</span>
+        <span class="tech-pill"><i class="bi bi-filetype-html text-warning me-1"></i> HTML5 & CSS3</span>
+        <span class="tech-pill"><i class="bi bi-bootstrap-fill text-primary me-1"></i> Bootstrap 5.3</span>
+        <span class="tech-pill"><i class="bi bi-bar-chart-fill text-danger me-1"></i> Chart.js Analytics</span>
+        <span class="tech-pill"><i class="bi bi-cpu-fill text-success me-1"></i> Google Gemini AI LLM</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Project Team Members -->
+  <section class="about-section bg-light">
+    <div class="container">
+      <div class="text-center mb-5">
+        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-1 rounded-pill mb-2">Development Team</span>
+        <h2 class="fw-bold text-dark">The Student Engineering Team</h2>
+        <p class="text-muted mx-auto" style="max-width: 650px;">
+          Developed as part of the Community Engagement Project (CEP) by 2nd Year Computer Science & Engineering students.
+        </p>
+      </div>
+
+      <div class="row g-4">
+        <!-- Team Member 1 -->
+        <div class="col-md-6 col-lg-3">
+          <div class="team-card">
+            <div class="team-avatar"><i class="bi bi-laptop"></i></div>
+            <div class="team-role">Frontend & UI/UX Lead</div>
+            <h4 class="team-name">Student Lead 1</h4>
+            <span class="team-id-badge">Roll No: [22CSE01] (Placeholder)</span>
+            <p class="team-desc">
+              Architected responsive web interfaces, multilingual UI toggle framework (i18n), design system, and cross-device accessibility for farmers.
+            </p>
+            <div class="team-socials">
+              <a href="#" title="GitHub"><i class="bi bi-github"></i></a>
+              <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+              <a href="#" title="Email"><i class="bi bi-envelope-fill"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Member 2 -->
+        <div class="col-md-6 col-lg-3">
+          <div class="team-card">
+            <div class="team-avatar" style="background: #eff6ff; color: #2563eb; border-color: #bfdbfe;"><i class="bi bi-shield-lock-fill"></i></div>
+            <div class="team-role" style="color: #2563eb;">Backend & Security Lead</div>
+            <h4 class="team-name">Student Lead 2</h4>
+            <span class="team-id-badge">Roll No: [22CSE02] (Placeholder)</span>
+            <p class="team-desc">
+              Engineered Spring Boot core REST architecture, Spring Security stateless JWT authentication, password recovery, and role-based access control.
+            </p>
+            <div class="team-socials">
+              <a href="#" title="GitHub"><i class="bi bi-github"></i></a>
+              <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+              <a href="#" title="Email"><i class="bi bi-envelope-fill"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Member 3 -->
+        <div class="col-md-6 col-lg-3">
+          <div class="team-card">
+            <div class="team-avatar" style="background: #fff7ed; color: #ea580c; border-color: #fed7aa;"><i class="bi bi-database-fill-gear"></i></div>
+            <div class="team-role" style="color: #ea580c;">Database & Admin Lead</div>
+            <h4 class="team-name">Student Lead 3</h4>
+            <span class="team-id-badge">Roll No: [22CSE03] (Placeholder)</span>
+            <p class="team-desc">
+              Designed 3NF MySQL schemas, JPA entities, crop repository, user complaint tracking system, and Chart.js graphical analytics dashboard.
+            </p>
+            <div class="team-socials">
+              <a href="#" title="GitHub"><i class="bi bi-github"></i></a>
+              <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+              <a href="#" title="Email"><i class="bi bi-envelope-fill"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Member 4 -->
+        <div class="col-md-6 col-lg-3">
+          <div class="team-card">
+            <div class="team-avatar" style="background: #faf5ff; color: #9333ea; border-color: #e9d5ff;"><i class="bi bi-cpu-fill"></i></div>
+            <div class="team-role" style="color: #9333ea;">AI & Quality Lead</div>
+            <h4 class="team-name">Student Lead 4</h4>
+            <span class="team-id-badge">Roll No: [22CSE04] (Placeholder)</span>
+            <p class="team-desc">
+              Implemented Gemini AI farming assistant integration, weather advisory engine, plant disease diagnostics, and automated JUnit test suite.
+            </p>
+            <div class="team-socials">
+              <a href="#" title="GitHub"><i class="bi bi-github"></i></a>
+              <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+              <a href="#" title="Email"><i class="bi bi-envelope-fill"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info mt-4 text-center small" role="alert">
+        <i class="bi bi-info-circle-fill me-1"></i> <strong>Note for Presentation / Viva:</strong> Member names and roll numbers can be updated in <code>about.html</code> to reflect your exact group members before final project defense.
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center">
+      <p data-i18n="footer_text">© 2026 Smart Krishi Sahayak. Dedicated to Indian Agriculture & Farmer Prosperity.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/i18n.js"></script>
+</body>
+</html>

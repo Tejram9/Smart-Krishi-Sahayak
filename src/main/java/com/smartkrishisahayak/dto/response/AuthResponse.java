@@ -13,11 +13,16 @@ public class AuthResponse {
     private String email;
     private PreferredLanguage preferredLanguage;
     private UserRole role;
+    private Long loginActivityId;
 
     public AuthResponse() {
     }
 
     public AuthResponse(String token, Long userId, String fullName, String mobileNumber, String email, PreferredLanguage preferredLanguage, UserRole role) {
+        this(token, userId, fullName, mobileNumber, email, preferredLanguage, role, null);
+    }
+
+    public AuthResponse(String token, Long userId, String fullName, String mobileNumber, String email, PreferredLanguage preferredLanguage, UserRole role, Long loginActivityId) {
         this.token = token;
         this.tokenType = "Bearer";
         this.userId = userId;
@@ -26,6 +31,7 @@ public class AuthResponse {
         this.email = email;
         this.preferredLanguage = preferredLanguage;
         this.role = role;
+        this.loginActivityId = loginActivityId;
     }
 
     // Getters and Setters
@@ -91,5 +97,13 @@ public class AuthResponse {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public Long getLoginActivityId() {
+        return loginActivityId;
+    }
+
+    public void setLoginActivityId(Long loginActivityId) {
+        this.loginActivityId = loginActivityId;
     }
 }

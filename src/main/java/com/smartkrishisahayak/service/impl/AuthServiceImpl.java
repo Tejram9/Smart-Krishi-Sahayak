@@ -30,17 +30,20 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final com.smartkrishisahayak.service.UserActivityService userActivityService;
 
     @Autowired
     public AuthServiceImpl(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
-            JwtService jwtService) {
+            JwtService jwtService,
+            com.smartkrishisahayak.service.UserActivityService userActivityService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.userActivityService = userActivityService;
     }
 
     @Override
@@ -93,6 +96,9 @@ public class AuthServiceImpl implements AuthService {
                 savedUser.getMobileNumber()
         );
 
+        // Record initial login activity for registration
+        com.smartkrishisahayak.entity.UserLoginActivity loginActivity = userActivityService.recordLogin(savedUser, null);
+
         return new AuthResponse(
                 token,
                 savedUser.getId(),
@@ -100,12 +106,18 @@ public class AuthServiceImpl implements AuthService {
                 savedUser.getMobileNumber(),
                 savedUser.getEmail(),
                 savedUser.getPreferredLanguage(),
-                savedUser.getRole()
+                savedUser.getRole(),
+                loginActivity != null ? loginActivity.getId() : null
         );
     }
 
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
+        return login(loginRequest, null);
+    }
+
+    @Override
+    public AuthResponse login(LoginRequest loginRequest, jakarta.servlet.http.HttpServletRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -117,7 +129,28 @@ public class AuthServiceImpl implements AuthService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+
+            // Strict role verification if client requested a specific login portal
+            if (loginRequest.getExpectedRole() != null && !loginRequest.getExpectedRole().trim().isEmpty()) {
+                String expected = loginRequest.getExpectedRole().trim().toUpperCase();
+                if (!expected.startsWith("ROLE_")) {
+                    expected = "ROLE_" + expected;
+                }
+
+                if ("ROLE_ADMIN".equals(expected) && userPrincipal.getRole() != UserRole.ROLE_ADMIN) {
+                    throw new BadRequestException("Access denied: This account is registered as a Farmer. Please select Farmer Login.");
+                } else if ("ROLE_FARMER".equals(expected) && userPrincipal.getRole() != UserRole.ROLE_FARMER) {
+                    throw new BadRequestException("Access denied: This account is registered as an Administrator. Please select Admin Login.");
+                }
+            }
+
             String token = jwtService.generateToken(authentication);
+
+            User user = userRepository.findById(userPrincipal.getId()).orElse(null);
+            com.smartkrishisahayak.entity.UserLoginActivity loginActivity = null;
+            if (user != null) {
+                loginActivity = userActivityService.recordLogin(user, request);
+            }
 
             return new AuthResponse(
                     token,
@@ -126,11 +159,20 @@ public class AuthServiceImpl implements AuthService {
                     userPrincipal.getMobileNumber(),
                     userPrincipal.getEmail(),
                     userPrincipal.getPreferredLanguage(),
-                    userPrincipal.getRole()
+                    userPrincipal.getRole(),
+                    loginActivity != null ? loginActivity.getId() : null
             );
         } catch (BadCredentialsException ex) {
             throw new BadRequestException("Invalid mobile number/email or password.");
         }
+    }
+
+    @Override
+    public void logout(UserPrincipal userPrincipal) {
+        if (userPrincipal != null && userPrincipal.getId() != null) {
+            userActivityService.recordLogout(userPrincipal.getId());
+        }
+        SecurityContextHolder.clearContext();
     }
 
     @Override

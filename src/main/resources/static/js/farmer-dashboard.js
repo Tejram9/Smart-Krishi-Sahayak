@@ -2,6 +2,20 @@
  * Smart Krishi Sahayak - Farmer Dashboard Controller
  * Handles Farmer Profile, Live Weather Climate Advisory, and Crop Recommendation Assistant
  */
+const ALLOWED_WEATHER_ICONS = new Set([
+  'bi-cloud-sun', 'bi-cloud-sun-fill', 'bi-cloud', 'bi-cloud-fill',
+  'bi-cloud-rain', 'bi-cloud-rain-fill', 'bi-cloud-drizzle', 'bi-cloud-drizzle-fill',
+  'bi-cloud-snow', 'bi-cloud-lightning', 'bi-cloud-lightning-rain', 'bi-cloud-lightning-fill',
+  'bi-sun', 'bi-sun-fill', 'bi-moon', 'bi-moon-fill',
+  'bi-wind', 'bi-droplet', 'bi-droplet-fill', 'bi-thermometer', 'bi-thermometer-half',
+  'bi-thermometer-sun', 'bi-thermometer-snow', 'bi-snow', 'bi-fog'
+]);
+function sanitizeWeatherIcon(icon) {
+  if (typeof icon !== 'string') return 'bi-cloud-sun';
+  const trimmed = icon.trim();
+  return ALLOWED_WEATHER_ICONS.has(trimmed) ? trimmed : 'bi-cloud-sun';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Enforce FARMER role requirement
   if (!Auth.requireRole('ROLE_FARMER')) return;
@@ -71,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const locationParts = [farmer.village, farmer.taluka, farmer.district, farmer.state].filter(Boolean);
     if (locEl) locEl.textContent = locationParts.length ? locationParts.join(', ') : 'Not Specified';
 
-    if (landEl) landEl.textContent = farmer.landSizeAcres ? `${farmer.landSizeAcres} Acres` : 'Not Specified';
+    if (landEl) landEl.textContent = (farmer.landSizeAcres !== null && farmer.landSizeAcres !== undefined) ? `${farmer.landSizeAcres} Acres` : 'Not Specified';
     if (cropsEl) cropsEl.textContent = farmer.primaryCrops || 'Not Specified';
     if (soilEl) soilEl.textContent = farmer.soilType || 'Not Specified';
   }
@@ -113,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (windEl) windEl.textContent = w.windSpeed || (w.windSpeedKmh ? `${w.windSpeedKmh.toFixed(1)} km/h` : '-- km/h');
           if (feelsEl) feelsEl.textContent = w.feelsLikeCelsius !== undefined ? `${w.feelsLikeCelsius.toFixed(1)}°C` : (w.temperature || '--°C');
           if (iconEl && w.weatherIcon) {
-            iconEl.className = `bi ${w.weatherIcon} me-2`;
+            iconEl.className = `bi ${sanitizeWeatherIcon(w.weatherIcon)} me-2`;
           }
           if (provEl && w.provider) {
             provEl.innerHTML = `<i class="bi bi-broadcast me-1"></i> ${Utils.escapeHtml(w.provider)}`;
@@ -225,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                       <h4 class="fw-bold text-primary mb-0">${Utils.escapeHtml(w.location)}, ${Utils.escapeHtml(w.state)}</h4>
                       <span class="badge bg-primary">${Utils.escapeHtml(w.currentSeason)}</span>
                     </div>
-                    <div class="text-secondary small mb-2"><i class="bi ${w.weatherIcon || 'bi-cloud-sun'} me-1"></i> ${Utils.escapeHtml(w.weatherCondition)}</div>
+                    <div class="text-secondary small mb-2"><i class="bi ${sanitizeWeatherIcon(w.weatherIcon)} me-1"></i> ${Utils.escapeHtml(w.weatherCondition)}</div>
                     <div class="d-flex flex-wrap gap-3 small text-muted">
                       <span><i class="bi bi-broadcast me-1"></i> ${Utils.escapeHtml(w.provider || 'Live Forecast')}</span>
                       ${w.lastUpdated ? `<span><i class="bi bi-clock me-1"></i> Updated: ${new Date(w.lastUpdated).toLocaleTimeString()}</span>` : ''}
@@ -485,7 +499,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div class="card-body">
             <div class="row align-items-center mb-4">
               <div class="col-md-4 text-center mb-3 mb-md-0">
-                <img src="${d.imageUrl}" alt="Diagnosed Leaf" class="img-fluid rounded border shadow-sm" style="max-height: 180px; object-fit: cover;">
+                <img src="${Api.formatUrl(d.imageUrl)}" alt="Diagnosed Leaf" class="img-fluid rounded border shadow-sm" style="max-height: 180px; object-fit: cover;">
                 <div class="small text-muted mt-1">Crop: <strong>${Utils.escapeHtml(d.cropName)}</strong></div>
               </div>
               <div class="col-md-8">
@@ -494,10 +508,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="mb-2">
                   <div class="d-flex justify-content-between small fw-semibold mb-1">
                     <span>Diagnostic Confidence</span>
-                    <span class="text-success">${d.confidence}%</span>
+                    <span class="text-success">${Number(d.confidence) || 0}%</span>
                   </div>
                   <div class="progress" style="height: 10px;">
-                    <div class="progress-bar bg-success progress-bar-striped" role="progressbar" style="width: ${d.confidence}%" aria-valuenow="${d.confidence}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-success progress-bar-striped" role="progressbar" style="width: ${Math.max(0, Math.min(100, Number(d.confidence) || 0))}%" aria-valuenow="${Number(d.confidence) || 0}" aria-valuemin="0" aria-valuemax="100"></div>
                   </div>
                 </div>
                 <div class="small text-muted fst-italic">
@@ -597,7 +611,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                   ${list.map(item => `
                     <tr id="scan-row-${item.id}">
                       <td>
-                        <img src="${item.imageUrl}" alt="Leaf" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
+                        <img src="${Api.formatUrl(item.imageUrl)}" alt="Leaf" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
                       </td>
                       <td class="small text-muted">${new Date(item.detectedAt).toLocaleString()}</td>
                       <td class="fw-semibold">${Utils.escapeHtml(item.cropName)}</td>
@@ -607,7 +621,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                           ${Utils.escapeHtml(item.severity)}
                         </span>
                       </td>
-                      <td class="text-success fw-bold">${item.confidence}%</td>
+                      <td class="text-success fw-bold">${Number(item.confidence) || 0}%</td>
                       <td class="text-end">
                         <div class="btn-group btn-group-sm">
                           <button class="btn btn-outline-primary btn-view-history-detail" data-id="${item.id}" title="View Details">

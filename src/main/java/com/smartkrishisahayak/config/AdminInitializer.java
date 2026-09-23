@@ -25,10 +25,10 @@ public class AdminInitializer implements CommandLineRunner {
     @Value("${app.admin.mobile:9999999999}")
     private String adminMobile;
 
-    @Value("${app.admin.email:admin@smartkrishi.gov.in}")
+    @Value("${app.admin.email:}")
     private String adminEmail;
 
-    @Value("${app.admin.password:Admin@123}")
+    @Value("${app.admin.password:}")
     private String adminPassword;
 
     @Autowired
@@ -40,6 +40,12 @@ public class AdminInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (userRepository.findByRole(UserRole.ROLE_ADMIN).isEmpty()) {
+            if (adminPassword == null || adminPassword.trim().isEmpty()) {
+                throw new IllegalStateException("app.admin.password is not configured. Refusing to seed an admin account with a missing password.");
+            }
+            if (adminPassword.length() < 12) {
+                throw new IllegalStateException("app.admin.password must be at least 12 characters long.");
+            }
             logger.info("No admin account found. Creating initial system administrator account...");
             User admin = new User(
                     "System Admin",
@@ -48,7 +54,9 @@ public class AdminInitializer implements CommandLineRunner {
                     PreferredLanguage.EN,
                     UserRole.ROLE_ADMIN
             );
-            admin.setEmail(adminEmail);
+            if (adminEmail != null && !adminEmail.trim().isEmpty()) {
+                admin.setEmail(adminEmail);
+            }
             userRepository.save(admin);
             logger.info("Initial admin account created successfully.");
         }

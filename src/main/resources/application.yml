@@ -17,7 +17,7 @@ spring:
       max-request-size: 10MB
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:krishi_db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true}
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:krishi_db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true}}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:com.mysql.cj.jdbc.Driver}
@@ -49,8 +49,12 @@ app:
     - EN
     - MR
     - HI
+  admin:
+    mobile: ${APP_ADMIN_MOBILE:9999999999}
+    email: ${APP_ADMIN_EMAIL:admin@smartkrishi.gov.in}
+    password: ${APP_ADMIN_PASSWORD:Admin@SecurePass2026}
   jwt:
-    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    secret: ${JWT_SECRET:c7b5a8e2d4f10938b65e21a4f0739c68c7b5a8e2d4f10938b65e21a4f0739c68}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   ai:
     provider: ${AI_PROVIDER:gemini}

@@ -10,12 +10,20 @@ public class LoginRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
+    private String expectedRole;
+
     public LoginRequest() {
     }
 
     public LoginRequest(String mobileNumberOrEmail, String password) {
         this.mobileNumberOrEmail = mobileNumberOrEmail;
         this.password = password;
+    }
+
+    public LoginRequest(String mobileNumberOrEmail, String password, String expectedRole) {
+        this.mobileNumberOrEmail = mobileNumberOrEmail;
+        this.password = password;
+        this.expectedRole = expectedRole;
     }
 
     public String getMobileNumberOrEmail() {
@@ -32,5 +40,13 @@ public class LoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getExpectedRole() {
+        return expectedRole;
+    }
+
+    public void setExpectedRole(String expectedRole) {
+        this.expectedRole = expectedRole;
     }
 }

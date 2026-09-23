@@ -148,4 +148,50 @@ public class AdminController {
         AdminStatsResponse stats = adminService.getSystemStats();
         return ResponseEntity.ok(ApiResponse.success("Analytics statistics retrieved successfully.", stats));
     }
+
+    /**
+     * Detailed analytics metrics for rich graphical reports.
+     */
+    @GetMapping("/analytics/detailed")
+    public ResponseEntity<ApiResponse<com.smartkrishisahayak.dto.response.AdminDetailedAnalyticsResponse>> getDetailedAnalytics() {
+        com.smartkrishisahayak.dto.response.AdminDetailedAnalyticsResponse analytics = adminService.getDetailedAnalytics();
+        return ResponseEntity.ok(ApiResponse.success("Detailed analytics retrieved successfully.", analytics));
+    }
+
+    /**
+     * Retrieve all user issue / complaint reports.
+     */
+    @GetMapping("/reports")
+    public ResponseEntity<ApiResponse<List<com.smartkrishisahayak.dto.response.UserReportResponse>>> getAllReports(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "100") int limit) {
+        List<com.smartkrishisahayak.dto.response.UserReportResponse> reports = adminService.getAllReports(status, category, search, limit);
+        return ResponseEntity.ok(ApiResponse.success("Reports retrieved successfully.", reports));
+    }
+
+    /**
+     * Update complaint report status and attach admin resolution response.
+     */
+    @PutMapping("/reports/{id}")
+    public ResponseEntity<ApiResponse<com.smartkrishisahayak.dto.response.UserReportResponse>> updateReportStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody com.smartkrishisahayak.dto.request.AdminReportUpdateRequest request) {
+        com.smartkrishisahayak.dto.response.UserReportResponse updated = adminService.updateReportStatus(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Report status updated successfully.", updated));
+    }
+
+    /**
+     * Retrieve user login / logout session activity audit logs.
+     */
+    @GetMapping("/login-activities")
+    public ResponseEntity<ApiResponse<List<com.smartkrishisahayak.dto.response.UserLoginActivityResponse>>> getLoginActivities(
+            @RequestParam(required = false) String filter,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "100") int limit) {
+        List<com.smartkrishisahayak.dto.response.UserLoginActivityResponse> activities = adminService.getLoginActivities(filter, role, search, limit);
+        return ResponseEntity.ok(ApiResponse.success("Login activities retrieved successfully.", activities));
+    }
 }

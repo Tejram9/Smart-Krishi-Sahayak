@@ -16,9 +16,17 @@ public class JwtService {
     private final SecretKey key;
     private final long jwtExpirationMs;
 
+    private static final String DEFAULT_SECRET = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+
     public JwtService(
-            @Value("${app.jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}") String secret,
+            @Value("${app.jwt.secret:}") String secret,
             @Value("${app.jwt.expiration-ms:86400000}") long jwtExpirationMs) {
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new IllegalStateException("app.jwt.secret is not configured. Refusing to start with a missing JWT signing key.");
+        }
+        if (DEFAULT_SECRET.equals(secret.trim())) {
+            throw new IllegalStateException("app.jwt.secret is set to the well-known default value. Replace it with a securely generated 256-bit secret.");
+        }
         byte[] keyBytes;
         if (isHexString(secret)) {
             keyBytes = hexStringToByteArray(secret);

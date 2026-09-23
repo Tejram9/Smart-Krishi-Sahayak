@@ -37,7 +37,7 @@
             <a class="nav-link" href="#how-it-works" data-i18n="nav_how_it_works">How It Works</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#about" data-i18n="nav_about">About</a>
+            <a class="nav-link" href="/about.html" data-i18n="nav_about">About Us</a>
           </li>
           <li class="nav-item me-lg-2">
             <a class="nav-link" href="/login.html" data-i18n="nav_login">Login</a>
@@ -65,7 +65,8 @@
       <p class="hero-subtitle" data-i18n="hero_subtitle">Get instant expert advice, crop guidance, plant disease assistance, and weather insights tailored for Indian agriculture.</p>
       <div class="d-flex justify-content-center gap-3 flex-wrap">
         <a href="/register.html" class="btn-custom-primary" data-i18n="hero_btn_register">Get Started Free</a>
-        <a href="/login.html" class="btn-custom-outline" data-i18n="hero_btn_login">Farmer Login</a>
+        <a href="/login.html?role=farmer" class="btn-custom-outline"><i class="bi bi-person-fill me-1"></i> Farmer Login</a>
+        <a href="/login.html?role=admin" class="btn-custom-outline" style="border-color: #f57c00; color: #e65100;"><i class="bi bi-shield-lock-fill me-1"></i> Admin Login</a>
       </div>
     </div>
   </section>
@@ -167,6 +168,11 @@
         <div class="col-lg-9 text-center">
           <h2 class="section-title mb-4" data-i18n="about_title">About Smart Krishi Sahayak</h2>
           <p class="lead text-muted" data-i18n="about_text">Smart Krishi Sahayak is a digital agriculture platform designed to empower Indian farmers. Combining advanced Artificial Intelligence with verified agricultural research, our mission is to deliver actionable, timely, and localized assistance to every farm.</p>
+          <div class="mt-4">
+            <a href="/about.html" class="btn btn-outline-success px-4 py-2 fw-semibold">
+              <i class="bi bi-people-fill me-1"></i> Meet Our Team & View Project Architecture
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -174,13 +180,19 @@
 
   <!-- Footer -->
   <footer>
-    <div class="container">
-      <p data-i18n="footer_text">© 2026 Smart Krishi Sahayak. Dedicated to Indian Agriculture & Farmer Prosperity.</p>
+    <div class="container text-center">
+      <div class="mb-3 d-flex justify-content-center gap-4 flex-wrap small">
+        <a href="/about.html" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-info-circle me-1"></i> About Us</a>
+        <a href="/login.html?role=farmer" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-person me-1"></i> Farmer Login</a>
+        <a href="/login.html?role=admin" class="text-white-50 text-decoration-none hover-white"><i class="bi bi-shield-lock me-1"></i> Admin Portal</a>
+      </div>
+      <p class="mb-0 text-white-50" data-i18n="footer_text">© 2026 Smart Krishi Sahayak. Dedicated to Indian Agriculture & Farmer Prosperity.</p>
     </div>
   </footer>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/config.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/utils.js"></script>

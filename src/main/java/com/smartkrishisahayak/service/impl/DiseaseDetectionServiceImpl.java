@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,13 +84,20 @@ public class DiseaseDetectionServiceImpl implements DiseaseDetectionService {
         }
 
         // 3. Store Image File Securely (prevent path traversal with clean name and server UUID)
-        String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(imageFile.getOriginalFilename()));
+        String originalFilenameRaw = imageFile.getOriginalFilename();
+        if (originalFilenameRaw == null || originalFilenameRaw.isBlank()) {
+            throw new BadRequestException("Leaf image filename is missing.");
+        }
+        String originalFilename = StringUtils.cleanPath(originalFilenameRaw);
         String fileExtension = getFileExtension(originalFilename);
         String uniqueFileName = "leaf_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + "." + fileExtension;
-        Path targetPath = this.uploadStorageLocation.resolve(uniqueFileName);
+        Path targetPath = this.uploadStorageLocation.resolve(uniqueFileName).normalize();
+        if (!targetPath.startsWith(this.uploadStorageLocation)) {
+            throw new BadRequestException("Invalid image upload path.");
+        }
 
-        try {
-            Files.copy(imageFile.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+        try (InputStream in = imageFile.getInputStream()) {
+            Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
             log.error("Failed to store image file: {}", uniqueFileName, ex);
             throw new BadRequestException("Failed to store leaf image on server: " + ex.getMessage());
@@ -180,6 +188,9 @@ public class DiseaseDetectionServiceImpl implements DiseaseDetectionService {
                 throw new BadRequestException("Invalid image file name.");
             }
             Path filePath = this.uploadStorageLocation.resolve(fileName).normalize();
+            if (!filePath.startsWith(this.uploadStorageLocation)) {
+                throw new BadRequestException("Invalid image file path.");
+            }
             Resource resource = new UrlResource(filePath.toUri());
             if (resource.exists() && resource.isReadable()) {
                 return resource;

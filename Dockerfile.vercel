@@ -1,0 +1,51 @@
+# =============================================================================
+# Smart Krishi Sahayak - Vercel Container Deployment Dockerfile
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage 1: Build the Spring Boot Application
+# -----------------------------------------------------------------------------
+FROM maven:3.9-eclipse-temurin-17-alpine AS builder
+
+WORKDIR /build
+
+# Copy Maven POM first to cache dependencies across builds
+COPY pom.xml .
+
+# Download dependencies offline (cached layer unless pom.xml changes)
+RUN mvn dependency:go-offline -B || true
+
+# Copy source code (includes Java source & static frontend assets in src/main/resources/static)
+COPY src ./src
+
+# Build production executable fat JAR, skipping tests for fast and deterministic builds
+RUN mvn clean package -DskipTests -B
+
+# -----------------------------------------------------------------------------
+# Stage 2: Minimal Runtime Environment
+# -----------------------------------------------------------------------------
+FROM eclipse-temurin:17-jre-alpine AS runner
+
+WORKDIR /app
+
+# Create a non-root system user and group for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Create directory for runtime file uploads (note: ephemeral in serverless containers)
+RUN mkdir -p /app/uploads/disease-scans && chown -R appuser:appgroup /app
+
+# Copy the built fat JAR from the builder stage
+COPY --from=builder --chown=appuser:appgroup /build/target/smart-krishi-sahayak-*.jar /app/app.jar
+
+# Switch to the non-root user
+USER appuser
+
+# Document default port (Vercel assigns PORT dynamically at runtime)
+EXPOSE 8080
+
+# Default environment settings
+ENV PORT=8080
+ENV SPRING_PROFILES_ACTIVE=prod
+
+# Run Spring Boot application, dynamically binding to Vercel's $PORT environment variable
+ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=${PORT:-8080} -Djava.security.egd=file:/dev/./urandom -jar /app/app.jar"]

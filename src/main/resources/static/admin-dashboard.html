@@ -25,6 +25,9 @@
       </a>
 
       <div class="d-flex align-items-center gap-3 ms-auto">
+        <a href="/about.html" class="text-decoration-none text-muted fw-semibold me-2 d-none d-md-inline">
+          <i class="bi bi-info-circle me-1"></i> About Us
+        </a>
         <select class="lang-select" aria-label="Select Language">
           <option value="EN">English (EN)</option>
           <option value="MR">मराठी (MR)</option>
@@ -95,11 +98,17 @@
       <button class="admin-tab-btn" data-tab="tab-chats">
         <i class="bi bi-chat-left-dots-fill"></i> <span>AI Chat Audit</span>
       </button>
+      <button class="admin-tab-btn" data-tab="tab-reports">
+        <i class="bi bi-shield-exclamation"></i> <span>User Reports</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="tab-activity">
+        <i class="bi bi-clock-history"></i> <span>Login Activity</span>
+      </button>
     </div>
 
     <!-- TAB 1: Overview & Analytics -->
     <div id="tab-overview" class="admin-tab-pane">
-      <!-- Quick Stats Grid -->
+      <!-- Quick Stats Grid (8 Key System Metrics) -->
       <div class="admin-stat-grid">
         <div class="admin-stat-card">
           <div class="admin-stat-icon icon-green"><i class="bi bi-person-check-fill"></i></div>
@@ -129,16 +138,56 @@
             <p>Published Advisories</p>
           </div>
         </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-teal"><i class="bi bi-box-arrow-in-right"></i></div>
+          <div class="admin-stat-info">
+            <h3 id="statTotalLoginsToday">0</h3>
+            <p>Logins Today</p>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-blue"><i class="bi bi-broadcast"></i></div>
+          <div class="admin-stat-info">
+            <h3 id="statActiveSessions">0</h3>
+            <p>Active Sessions Today</p>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-orange"><i class="bi bi-ticket-detailed"></i></div>
+          <div class="admin-stat-info">
+            <h3 id="statTotalReports">0</h3>
+            <p>Total User Reports</p>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-red"><i class="bi bi-exclamation-octagon-fill"></i></div>
+          <div class="admin-stat-info">
+            <h3 id="statPendingReports">0</h3>
+            <p>Pending Tickets</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Charts Grid -->
+      <!-- Charts Grid: 4 Interactive Chart.js Visualizations -->
       <div class="chart-grid">
         <div class="chart-card">
-          <div class="chart-card-title"><i class="bi bi-graph-up text-success"></i> Query Activity Trend (Past 7 Days)</div>
+          <div class="chart-card-title"><i class="bi bi-graph-up text-primary"></i> Daily Activity Trends (Past 7 Days)</div>
+          <canvas id="dailyActivityChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title"><i class="bi bi-chat-dots-fill text-success"></i> Query Activity Trend (Past 7 Days)</div>
           <canvas id="queryTrendChart" height="220"></canvas>
         </div>
         <div class="chart-card">
-          <div class="chart-card-title"><i class="bi bi-pie-chart text-primary"></i> User Language Preferences</div>
+          <div class="chart-card-title"><i class="bi bi-pie-chart text-warning"></i> Report & Complaint Status</div>
+          <canvas id="reportStatusChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title"><i class="bi bi-bar-chart-fill text-danger"></i> Reports by Category</div>
+          <canvas id="reportCategoryChart" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title"><i class="bi bi-pie-chart text-info"></i> User Language Preferences</div>
           <canvas id="langDistChart" height="220"></canvas>
         </div>
       </div>
@@ -228,6 +277,100 @@
             </thead>
             <tbody id="chatQueriesTableBody">
               <tr><td colspan="5" class="text-center py-4 text-muted">Loading audit logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: User Reports & Complaints Management -->
+    <div id="tab-reports" class="admin-tab-pane" style="display: none;">
+      <div class="admin-table-card">
+        <div class="admin-table-header flex-wrap gap-2">
+          <h4><i class="bi bi-shield-exclamation me-2"></i> User Support Reports & Complaints</h4>
+          <div class="d-flex gap-2 flex-wrap">
+            <select id="filterReportStatus" class="form-select form-select-sm" style="width: 150px;">
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+            <select id="filterReportCategory" class="form-select form-select-sm" style="width: 170px;">
+              <option value="">All Categories</option>
+              <option value="BUG">Bug Report</option>
+              <option value="FEATURE_REQUEST">Feature Request</option>
+              <option value="ACCOUNT_ISSUE">Account Issue</option>
+              <option value="CROP_DATA_ERROR">Crop Data Error</option>
+              <option value="OTHER">Other</option>
+            </select>
+            <button id="btnRefreshReports" class="btn btn-sm btn-outline-success">
+              <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+          </div>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Ticket #</th>
+                <th>Farmer</th>
+                <th>Category</th>
+                <th>Subject / Title</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="reportsTableBody">
+              <tr><td colspan="7" class="text-center py-4 text-muted">Loading reports...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: Login & Session Activity Trail -->
+    <div id="tab-activity" class="admin-tab-pane" style="display: none;">
+      <div class="admin-table-card">
+        <div class="admin-table-header flex-wrap gap-2">
+          <h4><i class="bi bi-clock-history me-2"></i> User Login & Session Activity Logs</h4>
+          <div class="d-flex gap-2 flex-wrap">
+            <select id="filterActivityRange" class="form-select form-select-sm" style="width: 130px;">
+              <option value="all">All Time</option>
+              <option value="today" selected>Today</option>
+              <option value="7d">Past 7 Days</option>
+              <option value="30d">Past 30 Days</option>
+            </select>
+            <select id="filterActivityRole" class="form-select form-select-sm" style="width: 140px;">
+              <option value="">All Roles</option>
+              <option value="FARMER">Farmer</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+            <input type="text" id="activitySearchInput" class="form-control form-control-sm" placeholder="Search user, mobile, IP..." style="width: 200px;">
+            <button id="btnSearchActivity" class="btn btn-sm btn-success"><i class="bi bi-search"></i> Search</button>
+            <button id="btnRefreshActivity" class="btn btn-sm btn-outline-success">
+              <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+          </div>
+        </div>
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Role</th>
+                <th>IP Address</th>
+                <th>Device / Browser</th>
+                <th>Login Time</th>
+                <th>Logout Time</th>
+                <th>Session Duration</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="activityTableBody">
+              <tr><td colspan="9" class="text-center py-4 text-muted">Loading login activities...</td></tr>
             </tbody>
           </table>
         </div>
@@ -357,6 +500,71 @@
         </div>
       </div>
     </div>
+  <!-- MODAL: Review & Update User Report -->
+  <div class="modal fade" id="reportReviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title" id="reportModalTitle"><i class="bi bi-shield-exclamation me-2"></i> Review Support Ticket</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="reviewReportId">
+          <div class="card bg-light border-0 p-3 mb-3">
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <small class="text-muted d-block">Ticket Number</small>
+                <strong id="modalTicketNum">-</strong>
+              </div>
+              <div class="col-sm-6">
+                <small class="text-muted d-block">Submitted By</small>
+                <strong id="modalFarmerName">-</strong> <span id="modalFarmerMobile" class="text-muted small"></span>
+              </div>
+              <div class="col-sm-6">
+                <small class="text-muted d-block">Category</small>
+                <span id="modalCategoryBadge" class="badge bg-secondary">-</span>
+              </div>
+              <div class="col-sm-6">
+                <small class="text-muted d-block">Created At</small>
+                <span id="modalCreatedAt" class="text-muted">-</span>
+              </div>
+              <div class="col-12 mt-2">
+                <small class="text-muted d-block">Subject</small>
+                <h6 id="modalTitle" class="fw-bold mb-1">-</h6>
+              </div>
+              <div class="col-12">
+                <small class="text-muted d-block">Description</small>
+                <div id="modalDesc" class="p-2 bg-white rounded border small">-</div>
+              </div>
+            </div>
+          </div>
+
+          <form id="reportReviewForm">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Update Ticket Status *</label>
+              <select class="form-select" id="reviewStatus" required>
+                <option value="PENDING">Pending (Under Review)</option>
+                <option value="IN_PROGRESS">In Progress (Investigating)</option>
+                <option value="RESOLVED">Resolved (Fixed / Addressed)</option>
+                <option value="REJECTED">Rejected (Not Applicable / Duplicate)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Admin Remarks / Resolution Details *</label>
+              <textarea class="form-control" id="reviewRemarks" rows="4" placeholder="Provide feedback or resolution details for the farmer..." required></textarea>
+              <div class="form-text">These remarks will be visible to the farmer in their Helpdesk portal.</div>
+            </div>
+            <div id="reportReviewError" class="alert alert-danger" style="display: none;"></div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-success" id="btnSaveReportReview">
+            <i class="bi bi-check-circle me-1"></i> Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Footer -->
@@ -368,6 +576,7 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/config.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/utils.js"></script>

@@ -298,12 +298,10 @@ document.addEventListener('DOMContentLoaded', () => {
         populateForm(currentProfileData);
 
         // Update stored user details in Auth if language or name changed
-        const currentUser = Auth.getUser();
-        if (currentUser) {
-          currentUser.fullName = currentProfileData.fullName;
-          currentUser.preferredLanguage = currentProfileData.preferredLanguage;
-          Auth.setUser(currentUser);
-        }
+        Auth.updateCurrentUser({
+          fullName: currentProfileData.fullName,
+          preferredLanguage: currentProfileData.preferredLanguage
+        });
 
         // Apply language if changed
         if (I18n.setLanguage && currentProfileData.preferredLanguage) {

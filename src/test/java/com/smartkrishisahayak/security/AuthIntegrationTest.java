@@ -36,6 +36,9 @@ class AuthIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private com.smartkrishisahayak.repository.UserLoginActivityRepository userLoginActivityRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -46,7 +49,10 @@ class AuthIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        userRepository.deleteAll();
+        userLoginActivityRepository.deleteAll();
+        userRepository.findAll().stream()
+                .filter(u -> u.getRole() != UserRole.ROLE_ADMIN)
+                .forEach(userRepository::delete);
     }
 
     @Test
@@ -178,10 +184,11 @@ class AuthIntegrationTest {
     @DisplayName("11. Farmer Access & 12. Admin Access & 13. Role Authorization Protection")
     void testRoleBasedAuthorization() throws Exception {
         User farmerUser = new User("Farmer User", "9111111111", passwordEncoder.encode("Pass123"), PreferredLanguage.MR, UserRole.ROLE_FARMER);
-        User adminUser = new User("Admin User", "9999999999", passwordEncoder.encode("AdminPass123"), PreferredLanguage.EN, UserRole.ROLE_ADMIN);
-
         userRepository.save(farmerUser);
-        userRepository.save(adminUser);
+
+        User adminUser = userRepository.findByRole(UserRole.ROLE_ADMIN).stream().findFirst().orElseGet(() ->
+                userRepository.save(new User("Admin User", "9999999998", passwordEncoder.encode("AdminPass123"), PreferredLanguage.EN, UserRole.ROLE_ADMIN))
+        );
 
         String farmerToken = jwtService.generateTokenFromUserId(farmerUser.getId(), farmerUser.getRole().name(), farmerUser.getMobileNumber());
         String adminToken = jwtService.generateTokenFromUserId(adminUser.getId(), adminUser.getRole().name(), adminUser.getMobileNumber());
