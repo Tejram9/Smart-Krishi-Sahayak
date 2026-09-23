@@ -25,9 +25,7 @@ public class WeatherServiceImpl implements WeatherService {
 
     private final WeatherClient weatherClient;
     private final WeatherAdvisoryEngine advisoryEngine;
-
-    @Value("${app.weather.cache-ttl-minutes:15}")
-    private long cacheTtlMinutes;
+    private final long cacheTtlMinutes;
 
     private static class CacheEntry {
         final WeatherData data;
@@ -46,9 +44,33 @@ public class WeatherServiceImpl implements WeatherService {
     private final Map<String, CacheEntry> weatherCache = new ConcurrentHashMap<>();
 
     @Autowired
+    public WeatherServiceImpl(WeatherClient weatherClient,
+                              WeatherAdvisoryEngine advisoryEngine,
+                              @Value("${app.weather.cache-ttl-minutes:15}") String cacheTtlMinutesStr) {
+        this(weatherClient, advisoryEngine, parseCacheTtl(cacheTtlMinutesStr, 15L));
+    }
+
     public WeatherServiceImpl(WeatherClient weatherClient, WeatherAdvisoryEngine advisoryEngine) {
+        this(weatherClient, advisoryEngine, 15L);
+    }
+
+    public WeatherServiceImpl(WeatherClient weatherClient, WeatherAdvisoryEngine advisoryEngine, long cacheTtlMinutes) {
         this.weatherClient = weatherClient;
         this.advisoryEngine = advisoryEngine;
+        this.cacheTtlMinutes = cacheTtlMinutes > 0 ? cacheTtlMinutes : 15L;
+    }
+
+    private static long parseCacheTtl(String value, long defaultVal) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultVal;
+        }
+        try {
+            long parsed = Long.parseLong(value.trim());
+            return parsed > 0 ? parsed : defaultVal;
+        } catch (NumberFormatException e) {
+            log.warn("Invalid weather cache TTL '{}', falling back to default {} minutes", value, defaultVal);
+            return defaultVal;
+        }
     }
 
     @Override

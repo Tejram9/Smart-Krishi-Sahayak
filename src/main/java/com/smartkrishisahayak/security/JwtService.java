@@ -18,9 +18,14 @@ public class JwtService {
 
     private static final String DEFAULT_SECRET = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
 
+    @org.springframework.beans.factory.annotation.Autowired
     public JwtService(
             @Value("${app.jwt.secret:}") String secret,
-            @Value("${app.jwt.expiration-ms:86400000}") long jwtExpirationMs) {
+            @Value("${app.jwt.expiration-ms:86400000}") String jwtExpirationMsStr) {
+        this(secret, parseExpiration(jwtExpirationMsStr, 86400000L));
+    }
+
+    public JwtService(String secret, long jwtExpirationMs) {
         if (secret == null || secret.trim().isEmpty()) {
             throw new IllegalStateException("app.jwt.secret is not configured. Refusing to start with a missing JWT signing key.");
         }
@@ -37,7 +42,19 @@ public class JwtService {
             throw new IllegalArgumentException("JWT secret key must be at least 32 bytes (256 bits) long.");
         }
         this.key = Keys.hmacShaKeyFor(keyBytes);
-        this.jwtExpirationMs = jwtExpirationMs;
+        this.jwtExpirationMs = jwtExpirationMs > 0 ? jwtExpirationMs : 86400000L;
+    }
+
+    private static long parseExpiration(String value, long defaultVal) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultVal;
+        }
+        try {
+            long parsed = Long.parseLong(value.trim());
+            return parsed > 0 ? parsed : defaultVal;
+        } catch (NumberFormatException e) {
+            return defaultVal;
+        }
     }
 
     private static boolean isHexString(String s) {

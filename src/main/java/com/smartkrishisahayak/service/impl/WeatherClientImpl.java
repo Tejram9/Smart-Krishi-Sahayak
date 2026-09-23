@@ -32,14 +32,42 @@ public class WeatherClientImpl implements WeatherClient {
     @Value("${app.weather.base-url:https://api.open-meteo.com/v1}")
     private String baseUrl;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public WeatherClientImpl(RestTemplateBuilder restTemplateBuilder,
                              ObjectMapper objectMapper,
-                             @Value("${app.weather.timeout-ms:5000}") long timeoutMs) {
+                             @Value("${app.weather.timeout-ms:5000}") String timeoutMsStr) {
+        this(restTemplateBuilder, objectMapper, parseTimeout(timeoutMsStr, 5000L));
+    }
+
+    public WeatherClientImpl(RestTemplateBuilder restTemplateBuilder,
+                             ObjectMapper objectMapper,
+                             long timeoutMs) {
+        long effectiveTimeout = timeoutMs > 0 ? timeoutMs : 5000L;
         this.restTemplate = restTemplateBuilder
-                .setConnectTimeout(Duration.ofMillis(timeoutMs))
-                .setReadTimeout(Duration.ofMillis(timeoutMs))
+                .setConnectTimeout(Duration.ofMillis(effectiveTimeout))
+                .setReadTimeout(Duration.ofMillis(effectiveTimeout))
                 .build();
         this.objectMapper = objectMapper;
+    }
+
+    private static long parseTimeout(String value, long defaultVal) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultVal;
+        }
+        try {
+            long parsed = Long.parseLong(value.trim());
+            return parsed > 0 ? parsed : defaultVal;
+        } catch (NumberFormatException e) {
+            log.warn("Invalid weather timeout value '{}', falling back to default {} ms", value, defaultVal);
+            return defaultVal;
+        }
+    }
+
+    private String getEffectiveBaseUrl() {
+        if (baseUrl == null || baseUrl.trim().isEmpty()) {
+            return "https://api.open-meteo.com/v1";
+        }
+        return baseUrl.trim();
     }
 
     @Override
@@ -69,7 +97,7 @@ public class WeatherClientImpl implements WeatherClient {
     private WeatherData fetchFromOpenMeteo(double lat, double lon, String location, String state) {
         String url = String.format(
                 "%s/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,cloud_cover&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia/Kolkata",
-                baseUrl, lat, lon
+                getEffectiveBaseUrl(), lat, lon
         );
 
         log.debug("Calling Open-Meteo API: {}", url);

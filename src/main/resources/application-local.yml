@@ -19,3 +19,7 @@ app:
   jwt:
     secret: c7b5a8e2d4f10938b65e21a4f0739c68c7b5a8e2d4f10938b65e21a4f0739c68
     expiration-ms: 86400000
+  weather:
+    provider: open-meteo
+    timeout-ms: 5000
+    cache-ttl-minutes: 15

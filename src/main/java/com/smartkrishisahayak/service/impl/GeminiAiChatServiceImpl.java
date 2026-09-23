@@ -52,7 +52,16 @@ public class GeminiAiChatServiceImpl implements AiChatService {
             @Value("${app.ai.gemini.api-key:}") String apiKey,
             @Value("${app.ai.gemini.model:gemini-2.5-flash}") String model,
             @Value("${app.ai.gemini.base-url:https://generativelanguage.googleapis.com}") String baseUrl,
-            @Value("${app.ai.gemini.timeout-ms:30000}") int timeoutMs,
+            @Value("${app.ai.gemini.timeout-ms:30000}") String timeoutMsStr,
+            ObjectMapper objectMapper) {
+        this(apiKey, model, baseUrl, parseTimeout(timeoutMsStr, 30000), objectMapper);
+    }
+
+    public GeminiAiChatServiceImpl(
+            String apiKey,
+            String model,
+            String baseUrl,
+            int timeoutMs,
             ObjectMapper objectMapper) {
         this.apiKey = apiKey != null ? apiKey.trim() : "";
         this.model = normalizeModelName(model);
@@ -64,6 +73,19 @@ public class GeminiAiChatServiceImpl implements AiChatService {
         factory.setConnectTimeout(this.timeoutMs);
         factory.setReadTimeout(this.timeoutMs);
         this.restTemplate = new RestTemplate(factory);
+    }
+
+    private static int parseTimeout(String value, int defaultVal) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultVal;
+        }
+        try {
+            int parsed = Integer.parseInt(value.trim());
+            return parsed > 0 ? parsed : defaultVal;
+        } catch (NumberFormatException e) {
+            log.warn("Invalid Gemini timeout value '{}', falling back to default {} ms", value, defaultVal);
+            return defaultVal;
+        }
     }
 
     /**
