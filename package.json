@@ -1,0 +1,33 @@
+{
+  "name": "cep_project",
+  "version": "1.0.0",
+  "description": "> **Community Engagement Project (CEP)**   > **Developed by:** 2nd Year Computer Science & Engineering Students (Team of 4)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tejram9/Smart-Krishi-Sahayak.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Tejram9/Smart-Krishi-Sahayak/issues"
+  },
+  "homepage": "https://github.com/Tejram9/Smart-Krishi-Sahayak#readme",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.6.2",
+    "jest": "^30.5.2",
+    "ts-jest": "^29.4.13",
+    "typescript": "^5.9.3"
+  }
+}

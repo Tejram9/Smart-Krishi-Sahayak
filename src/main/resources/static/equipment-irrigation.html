@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farm Equipment & Irrigation Guide - Smart Krishi Sahayak</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .guide-page-header {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .guide-tab-nav {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 0.5rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .guide-tab-btn {
+      flex: 1 1 200px;
+      padding: 0.85rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .guide-tab-btn:hover {
+      background-color: var(--primary-light);
+      color: var(--primary-color);
+    }
+
+    .guide-tab-btn.active {
+      background-color: var(--primary-color);
+      color: white !important;
+      box-shadow: 0 4px 6px -1px rgba(46, 125, 50, 0.25);
+    }
+
+    .guide-filter-bar {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .guide-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition-fast);
+    }
+
+    .guide-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: #a5d6a7;
+    }
+
+    .guide-card-icon-wrap {
+      width: 58px;
+      height: 58px;
+      border-radius: 14px;
+      background: var(--primary-light);
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .guide-card-icon-wrap.icon-wrap-blue {
+      background: #e1f5fe;
+      color: #0288d1;
+    }
+
+    .guide-svg-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .guide-badge-category {
+      background-color: #f1f8e9;
+      color: #33691e;
+      border: 1px solid #dcedc8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .guide-card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .guide-card-badge-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .guide-card-desc {
+      font-size: 0.9rem;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+
+    .guide-meta-box {
+      background: #f9fbf9;
+      border: 1px solid #eef2ee;
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      font-size: 0.825rem;
+    }
+
+    .guide-meta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.2rem 0;
+    }
+
+    .guide-meta-label {
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .guide-meta-val {
+      font-weight: 600;
+      color: var(--text-dark);
+      text-align: right;
+    }
+
+    /* System Flow Stepper Styles */
+    .flow-pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow-x: auto;
+      padding: 1.5rem 1rem;
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+      gap: 0.5rem;
+    }
+
+    .flow-step-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 110px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      padding: 0.5rem;
+      border-radius: var(--radius-md);
+    }
+
+    .flow-step-node:hover {
+      background-color: var(--primary-light);
+    }
+
+    .flow-step-node.active .flow-step-circle {
+      background-color: var(--primary-color);
+      color: white;
+      transform: scale(1.1);
+      box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.2);
+    }
+
+    .flow-step-node.active .flow-step-title {
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .flow-step-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #f3f4f6;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      margin-bottom: 0.5rem;
+      transition: var(--transition-fast);
+      position: relative;
+    }
+
+    .flow-step-num {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--accent-gold);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .flow-step-circle-lg {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border: 2px solid var(--primary-color);
+      flex-shrink: 0;
+    }
+
+    .flow-step-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      max-width: 110px;
+      line-height: 1.3;
+    }
+
+    .flow-arrow {
+      color: #9ca3af;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .flow-card-detail {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .advisor-form-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-input-group {
+      position: relative;
+    }
+
+    .search-input-group i.search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .search-input-group input {
+      padding-left: 2.75rem;
+      padding-right: 2.5rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      height: 48px;
+      font-size: 0.95rem;
+    }
+
+    .search-input-group input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+    }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: none;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container-fluid max-width-container">
+      <a class="navbar-brand-text" href="/index.html">
+        <span class="brand-icon"><i class="bi bi-tree-fill"></i></span>
+        <span data-i18n="app_name">Smart Krishi Sahayak</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarEquipment" aria-controls="navbarEquipment" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarEquipment">
+        <div class="d-flex align-items-center gap-3 ms-auto mt-2 mt-lg-0">
+          <a href="/farmer-dashboard.html" class="nav-link">
+            <i class="bi bi-grid-fill"></i> <span data-i18n="nav_dashboard">Dashboard</span>
+          </a>
+          <a href="/crop-info.html" class="nav-link">
+            <i class="bi bi-journal-text"></i> <span data-i18n="feature_crop_title">Crop Info</span>
+          </a>
+          <a href="/about.html" class="nav-link">
+            <i class="bi bi-info-circle"></i> <span data-i18n="nav_about">About Us</span>
+          </a>
+          <select class="lang-select" aria-label="Select Language">
+            <option value="EN">English (EN)</option>
+            <option value="MR">मराठी (MR)</option>
+            <option value="HI">हिंदी (HI)</option>
+          </select>
+          <a href="/login.html" id="navLoginBtn" class="btn btn-outline-success btn-sm px-3" style="display: none;" data-i18n="nav_login">Login</a>
+          <button id="logoutBtn" class="btn-logout" style="display: inline-flex;">
+            <i class="bi bi-box-arrow-right"></i> <span data-i18n="nav_logout">Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="dashboard-container guide-main-content">
+
+    <!-- Page Header Banner -->
+    <div class="guide-page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded">
+            <i class="bi bi-gear-wide-connected"></i> <span data-i18n="equip_badge_mechanization">Verified Mechanization & Irrigation Science</span>
+          </span>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded">
+            <i class="bi bi-shield-check"></i> <span data-i18n="equip_badge_authoritative">ICAR • CIAE • PMKSY • BIS Verified Sources</span>
+          </span>
+        </div>
+        <h2 class="fw-bold text-dark m-0" data-i18n="equip_guide_title">Farm Equipment & Irrigation Guide</h2>
+        <p class="text-muted m-0 mt-1" data-i18n="equip_guide_subtitle">Comprehensive machinery specifications, precision irrigation methods, step-by-step system design, and decision guidance.</p>
+      </div>
+      <div>
+        <span id="equipmentCountBadge" class="badge bg-secondary px-3 py-2 fs-6 rounded-pill">10 Equipment</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="guide-tab-nav" role="tablist">
+      <button type="button" class="guide-tab-btn active" data-guide-tab="equipment" role="tab" aria-selected="true">
+        <i class="bi bi-tools fs-5"></i>
+        <span data-i18n="equip_tab_equipment">Farm Equipment Library</span>
+      </button>
+      <button type="button" class="guide-tab-btn" data-guide-tab="irrigation" role="tab" aria-selected="false">
+        <i class="bi bi-droplet-half fs-5"></i>
+        <span data-i18n="equip_tab_irrigation">Irrigation Methods</span>
+      </button>
+      <button type="button" class="guide-tab-btn" data-guide-tab="system-flow" role="tab" aria-selected="false">
+        <i class="bi bi-diagram-3 fs-5"></i>
+        <span data-i18n="equip_tab_flow">System Step-by-Step Flow</span>
+      </button>
+      <button type="button" class="guide-tab-btn" data-guide-tab="advisor" role="tab" aria-selected="false">
+        <i class="bi bi-compass fs-5"></i>
+        <span data-i18n="equip_tab_advisor">Which One Should I Choose?</span>
+      </button>
+    </div>
+
+    <!-- TAB PANE 1: FARM EQUIPMENT LIBRARY -->
+    <section id="pane-equipment" class="guide-tab-pane">
+      <!-- Equipment Filter Bar -->
+      <div class="guide-filter-bar">
+        <div class="row g-3 align-items-center">
+          <!-- Search Input -->
+          <div class="col-12 col-md-5">
+            <div class="search-input-group">
+              <i class="bi bi-search search-icon"></i>
+              <input type="text" id="equipmentSearchInput" class="form-control" placeholder="Search equipment by name, crop, or use..." data-i18n-placeholder="equip_search_placeholder">
+              <button type="button" id="clearEquipSearchBtn" class="search-clear-btn" aria-label="Clear Search">
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="col-6 col-md-3">
+            <select id="equipmentCategoryFilter" class="form-select form-select-custom">
+              <option value="all" data-i18n="equip_filter_all_categories">All Categories</option>
+              <option value="power">Tractor & Power Tiller</option>
+              <option value="tillage">Tillage & Seedbed (Plough, Cultivator, Rotavator)</option>
+              <option value="sowing">Sowing (Seed Drill)</option>
+              <option value="protection">Plant Protection (Sprayer)</option>
+              <option value="harvesting">Harvesting & Post-Harvest (Harvester, Thresher)</option>
+              <option value="irrigation">Water Lifting (Water Pump)</option>
+            </select>
+          </div>
+
+          <!-- Farm Size Filter -->
+          <div class="col-6 col-md-3">
+            <select id="equipmentSizeFilter" class="form-select form-select-custom">
+              <option value="all" data-i18n="equip_filter_all_sizes">All Farm Sizes</option>
+              <option value="small">Small & Marginal (< 3 Acres)</option>
+              <option value="large">Medium & Large (> 3 Acres)</option>
+            </select>
+          </div>
+
+          <!-- Reset Button -->
+          <div class="col-12 col-md-1 text-md-end">
+            <button type="button" id="resetEquipFiltersBtn" class="btn btn-outline-secondary w-100 h-100 py-2" title="Reset Filters">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Equipment Empty State -->
+      <div id="equipmentEmptyState" class="state-container d-none">
+        <div class="state-icon"><i class="bi bi-search"></i></div>
+        <h4 class="fw-bold text-dark">No equipment found matching your search.</h4>
+        <p class="text-muted">Try a different search term or reset the category filter.</p>
+      </div>
+
+      <!-- Equipment Grid -->
+      <div id="equipmentGrid" class="row g-4">
+        <!-- Rendered dynamically by equipment-irrigation.js -->
+      </div>
+    </section>
+
+    <!-- TAB PANE 2: IRRIGATION METHODS GUIDE -->
+    <section id="pane-irrigation" class="guide-tab-pane d-none">
+      <!-- Irrigation Filter Bar -->
+      <div class="guide-filter-bar">
+        <div class="row g-3 align-items-center">
+          <div class="col-12 col-md-6">
+            <div class="search-input-group">
+              <i class="bi bi-search search-icon"></i>
+              <input type="text" id="irrigationSearchInput" class="form-control" placeholder="Search irrigation method by crop or technique...">
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <select id="irrigationCategoryFilter" class="form-select form-select-custom">
+              <option value="all">All Irrigation Categories</option>
+              <option value="drip">Drip Irrigation</option>
+              <option value="sprinkler">Sprinkler Irrigation</option>
+              <option value="surface-flood">Surface/Flood Irrigation</option>
+              <option value="furrow">Furrow Irrigation</option>
+              <option value="rain-gun">Rain Gun Irrigation</option>
+              <option value="micro-irrigation">Micro-Irrigation</option>
+              <option value="micro">Group: Micro-Irrigation (Drip & Micro-Irrigation)</option>
+              <option value="traditional">Group: Traditional / Gravity (Surface Flood & Furrow)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Irrigation Grid -->
+      <div id="irrigationGrid" class="row g-4">
+        <!-- Rendered dynamically by equipment-irrigation.js -->
+      </div>
+    </section>
+
+    <!-- TAB PANE 3: IRRIGATION SYSTEM VISUAL FLOW -->
+    <section id="pane-system-flow" class="guide-tab-pane d-none">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold text-dark" data-i18n="flow_title">How an Agricultural Irrigation System Works</h3>
+        <p class="text-muted max-w-md mx-auto" data-i18n="flow_subtitle">A visual step-by-step journey from the water source directly into your crop's root zone. Click any component below to explore its role, farmer tips, and maintenance checks.</p>
+      </div>
+
+      <!-- Stepper Pipeline -->
+      <div id="flowPipelineContainer" class="flow-pipeline">
+        <!-- Dynamically rendered nodes -->
+      </div>
+
+      <!-- Detail Card of Active Step -->
+      <div id="flowDetailCard" class="flow-card-detail">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- TAB PANE 4: "WHICH ONE SHOULD I CHOOSE?" DECISION ADVISOR -->
+    <section id="pane-advisor" class="guide-tab-pane d-none">
+      <div class="row g-4 justify-content-center">
+        <div class="col-12 col-lg-8">
+          <div class="advisor-form-card">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="guide-card-icon-wrap">
+                <i class="bi bi-compass-fill fs-2"></i>
+              </div>
+              <div>
+                <h4 class="fw-bold text-dark m-0" data-i18n="advisor_title">Smart Equipment & Irrigation Decision Advisor</h4>
+                <p class="text-muted small m-0" data-i18n="advisor_subtitle">Find the optimal irrigation system and machinery tailored to your land size, soil, and water supply.</p>
+              </div>
+            </div>
+
+            <form id="advisorForm" class="row g-3">
+              <!-- Step 1: Crop -->
+              <div class="col-12 col-md-6">
+                <label for="advisorCropSelect" class="form-label fw-bold text-dark">
+                  <i class="bi bi-flower1 text-success me-1"></i> <span data-i18n="advisor_step_crop">1. Select Primary Crop</span>
+                </label>
+                <select id="advisorCropSelect" class="form-select form-select-custom" required>
+                  <option value="row-crops">Row Crops (Cotton, Sugarcane, Maize)</option>
+                  <option value="orchard">Fruit Orchards (Pomegranate, Grapes, Mango, Banana)</option>
+                  <option value="cereals">Cereals & Grains (Wheat, Paddy, Millets)</option>
+                  <option value="vegetables">Vegetables (Tomato, Chilli, Onion, Leafy)</option>
+                  <option value="pulses">Pulses & Oilseeds (Soybean, Gram/Chana, Groundnut)</option>
+                  <option value="fodder">Fodder & Pasture (Napier Grass, Lucerne)</option>
+                </select>
+              </div>
+
+              <!-- Step 2: Soil -->
+              <div class="col-12 col-md-6">
+                <label for="advisorSoilSelect" class="form-label fw-bold text-dark">
+                  <i class="bi bi-layers text-secondary me-1"></i> <span data-i18n="advisor_step_soil">2. Select Soil Type</span>
+                </label>
+                <select id="advisorSoilSelect" class="form-select form-select-custom" required>
+                  <option value="clay">Black Cotton Soil / Heavy Clay (High water retention)</option>
+                  <option value="loamy">Loamy / Alluvial Soil (Medium well-drained)</option>
+                  <option value="sandy">Sandy / Light Soil (High infiltration rate)</option>
+                  <option value="rocky">Rocky / Shallow / Undulating Terrain</option>
+                </select>
+              </div>
+
+              <!-- Step 3: Water Availability -->
+              <div class="col-12 col-md-6">
+                <label for="advisorWaterSelect" class="form-label fw-bold text-dark">
+                  <i class="bi bi-droplet-half text-primary me-1"></i> <span data-i18n="advisor_step_water">3. Water Availability</span>
+                </label>
+                <select id="advisorWaterSelect" class="form-select form-select-custom" required>
+                  <option value="scarce">Scarce / Critical (Low borewell yield, water saving vital)</option>
+                  <option value="moderate">Moderate (Dug well / seasonal borewell)</option>
+                  <option value="abundant">Abundant (Perennial canal / river / large farm pond)</option>
+                </select>
+              </div>
+
+              <!-- Step 4: Farm Size -->
+              <div class="col-12 col-md-6">
+                <label for="advisorSizeSelect" class="form-label fw-bold text-dark">
+                  <i class="bi bi-aspect-ratio text-warning me-1"></i> <span data-i18n="advisor_step_size">4. Farm Land Size</span>
+                </label>
+                <select id="advisorSizeSelect" class="form-select form-select-custom" required>
+                  <option value="marginal">Marginal Farm (< 2 Acres)</option>
+                  <option value="small">Small Farm (2 to 5 Acres)</option>
+                  <option value="medium">Medium Farm (5 to 10 Acres)</option>
+                  <option value="large">Large Farm (> 10 Acres)</option>
+                </select>
+              </div>
+
+              <!-- Submit -->
+              <div class="col-12 mt-4 text-center">
+                <button type="submit" class="btn btn-custom-primary px-5 py-3 fs-6">
+                  <i class="bi bi-lightbulb-fill me-2"></i> <span data-i18n="advisor_btn_calculate">Get Tailored Recommendation</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Result Container -->
+          <div id="advisorResultContainer" class="mt-4 d-none">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL: Equipment Details -->
+  <div class="modal fade" id="equipmentDetailModal" tabindex="-1" aria-labelledby="modalEquipName" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header border-bottom px-4 py-3 bg-light">
+          <div class="d-flex align-items-center gap-3">
+            <div id="modalEquipIconWrap" class="guide-card-icon-wrap" style="width: 50px; height: 50px;">
+              <!-- Icon -->
+            </div>
+            <div>
+              <span id="modalEquipCategory" class="guide-badge-category">Category</span>
+              <h4 class="modal-title fw-bold text-dark m-0" id="modalEquipName">Equipment Name</h4>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <!-- Main Purpose -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-bullseye text-danger me-1"></i> <span data-i18n="equip_modal_purpose">Main Purpose</span></h6>
+            <p id="modalEquipPurpose" class="text-secondary fs-6 m-0"></p>
+          </div>
+
+          <!-- Suitable Crops & Best Stage -->
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 bg-light border h-100">
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-flower1 text-success me-1"></i> <span data-i18n="equip_modal_suitable_crops">Suitable Crops</span></h6>
+                <div id="modalEquipCrops" class="d-flex flex-wrap gap-1"></div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 bg-light border h-100">
+                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-calendar2-range text-primary me-1"></i> <span data-i18n="equip_modal_best_stage">Best Use Stage</span></h6>
+                <p id="modalEquipStage" class="text-secondary small m-0"></p>
+                <div class="mt-2 pt-2 border-top">
+                  <span class="fw-semibold text-dark small"><i class="bi bi-aspect-ratio text-warning me-1"></i> Farm Scale: </span>
+                  <span id="modalEquipFarmSize" class="text-muted small"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Basic Working -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-gear-wide-connected text-primary me-1"></i> <span data-i18n="equip_modal_working">Basic Working Principle</span></h6>
+            <p id="modalEquipWorking" class="text-secondary fs-6 m-0" style="line-height: 1.6;"></p>
+          </div>
+
+          <!-- Specifications Table -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-card-checklist text-success me-1"></i> <span data-i18n="equip_modal_specs">Key Specifications</span></h6>
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped align-middle mb-0">
+                <tbody id="modalEquipSpecsTable">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Maintenance & Safety Tips -->
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 bg-success-subtle border border-success-subtle h-100">
+                <h6 class="fw-bold text-success mb-2"><i class="bi bi-tools me-1"></i> <span data-i18n="equip_modal_maintenance">Maintenance & Care</span></h6>
+                <ul id="modalEquipMaintenanceList" class="list-unstyled small text-secondary m-0"></ul>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 bg-danger-subtle border border-danger-subtle h-100">
+                <h6 class="fw-bold text-danger mb-2"><i class="bi bi-shield-shaded me-1"></i> <span data-i18n="equip_modal_safety">Farmer Safety Tips</span></h6>
+                <ul id="modalEquipSafetyList" class="list-unstyled small text-secondary m-0"></ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Authoritative Source Attribution & Unavailable Information Notice -->
+          <div class="mt-4 pt-3 border-top" id="modalEquipSourceContainer"></div>
+        </div>
+
+        <div class="modal-footer border-top px-4 py-3 bg-light">
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Irrigation Details -->
+  <div class="modal fade" id="irrigationDetailModal" tabindex="-1" aria-labelledby="modalIrrigTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header border-bottom px-4 py-3 bg-light">
+          <div>
+            <span id="modalIrrigBadge" class="badge bg-primary-subtle text-primary border border-primary-subtle mb-1">Efficiency</span>
+            <h4 class="modal-title fw-bold text-dark m-0" id="modalIrrigTitle">Irrigation Type</h4>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <!-- How It Works -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-info-circle text-primary me-1"></i> <span data-i18n="irrig_how_it_works">How It Works</span></h6>
+            <p id="modalIrrigHowWorks" class="text-secondary fs-6 m-0" style="line-height: 1.6;"></p>
+          </div>
+
+          <!-- Efficiency Banner -->
+          <div class="mb-4 p-3 rounded-3 bg-light border" id="modalIrrigEfficiency">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Clearly Labeled Subtypes / Related Methods -->
+          <div id="modalIrrigSubtypes"></div>
+
+          <!-- Crops & Soil -->
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 bg-light border h-100">
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-flower1 text-success me-1"></i> <span data-i18n="irrig_suitable_crops">Suitable Crops</span></h6>
+                <div id="modalIrrigCrops" class="d-flex flex-wrap gap-1"></div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 bg-light border h-100">
+                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-layers text-secondary me-1"></i> <span data-i18n="irrig_suitable_soil">Suitable Soil</span></h6>
+                <p id="modalIrrigSoil" class="text-secondary small m-0"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advantages & Limitations -->
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 bg-success-subtle border border-success-subtle h-100">
+                <h6 class="fw-bold text-success mb-2"><i class="bi bi-hand-thumbs-up-fill me-1"></i> <span data-i18n="irrig_advantages">Advantages</span></h6>
+                <ul id="modalIrrigAdvantages" class="list-unstyled small text-secondary m-0"></ul>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 bg-warning-subtle border border-warning-subtle h-100">
+                <h6 class="fw-bold text-warning-emphasis mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> <span data-i18n="irrig_limitations">Limitations</span></h6>
+                <ul id="modalIrrigLimitations" class="list-unstyled small text-secondary m-0"></ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Basic Components -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-diagram-2 text-primary me-1"></i> <span data-i18n="irrig_components">Basic Components</span></h6>
+            <div id="modalIrrigComponents"></div>
+          </div>
+
+          <!-- Maintenance -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-wrench-adjustable text-success me-1"></i> <span data-i18n="irrig_maintenance">Maintenance Schedule</span></h6>
+            <ul id="modalIrrigMaintenance" class="list-unstyled small text-secondary m-0"></ul>
+          </div>
+
+          <!-- When to Choose It -->
+          <div class="p-3 rounded-3 bg-primary-subtle border border-primary-subtle mb-4">
+            <h6 class="fw-bold text-primary mb-1"><i class="bi bi-lightbulb-fill me-1"></i> <span data-i18n="irrig_when_to_choose">When to Choose It</span></h6>
+            <p id="modalIrrigWhen" class="text-dark small m-0"></p>
+          </div>
+
+          <!-- Authoritative Source Attribution & Unavailable Information Notice -->
+          <div class="pt-3 border-top" id="modalIrrigSourceContainer"></div>
+        </div>
+
+        <div class="modal-footer border-top px-4 py-3 bg-light">
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p data-i18n="footer_text">© 2026 Smart Krishi Sahayak. Dedicated to Indian Agriculture & Farmer Prosperity.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/equipment-irrigation-data.js"></script>
+  <script src="/js/equipment-irrigation.js"></script>
+</body>
+</html>
