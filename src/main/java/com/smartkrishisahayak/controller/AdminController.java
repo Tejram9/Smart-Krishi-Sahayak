@@ -188,10 +188,12 @@ public class AdminController {
     @GetMapping("/login-activities")
     public ResponseEntity<ApiResponse<List<com.smartkrishisahayak.dto.response.UserLoginActivityResponse>>> getLoginActivities(
             @RequestParam(required = false) String filter,
+            @RequestParam(required = false) String timeRange,
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "100") int limit) {
-        List<com.smartkrishisahayak.dto.response.UserLoginActivityResponse> activities = adminService.getLoginActivities(filter, role, search, limit);
+        String activeFilter = (filter != null && !filter.trim().isEmpty()) ? filter : timeRange;
+        List<com.smartkrishisahayak.dto.response.UserLoginActivityResponse> activities = adminService.getLoginActivities(activeFilter, role, search, limit);
         return ResponseEntity.ok(ApiResponse.success("Login activities retrieved successfully.", activities));
     }
 }

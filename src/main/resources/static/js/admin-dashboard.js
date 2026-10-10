@@ -123,16 +123,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (totalQueriesEl) totalQueriesEl.textContent = stats.totalQueriesAnswered || 0;
         if (totalCropsEl) totalCropsEl.textContent = stats.totalCropsManaged || 0;
         if (totalAdvisoriesEl) totalAdvisoriesEl.textContent = stats.totalAdvisoriesPublished || 0;
-        if (totalLoginsTodayEl) totalLoginsTodayEl.textContent = stats.totalLoginsToday || 0;
-        if (activeSessionsEl) activeSessionsEl.textContent = stats.activeSessionsToday || 0;
+        if (totalLoginsTodayEl) totalLoginsTodayEl.textContent = stats.totalLoginsToday ?? stats.todayLogins ?? 0;
+        if (activeSessionsEl) activeSessionsEl.textContent = stats.activeSessionsToday ?? stats.activeSessions ?? 0;
         if (totalReportsEl) totalReportsEl.textContent = stats.totalReports || 0;
         if (pendingReportsEl) pendingReportsEl.textContent = stats.pendingReports || 0;
 
-        // Render Visual Charts
-        renderDailyActivityChart(stats.dailyLogins || [], stats.dailyRegistrations || []);
-        renderQueryTrendChart(stats.dailyQueries || []);
-        renderReportStatusChart(stats.reportStatusDistribution || {});
-        renderReportCategoryChart(stats.reportCategoryDistribution || {});
+        // Render Visual Charts with fallback support for both property name styles
+        const dailyLogins = stats.dailyLogins || stats.loginTrend || [];
+        const dailyRegs = stats.dailyRegistrations || stats.registrationTrend || [];
+        const dailyQueries = stats.dailyQueries || stats.queryTrend || [];
+        const reportStatusDist = stats.reportStatusDistribution || stats.reportsByStatus || {};
+        const reportCatDist = stats.reportCategoryDistribution || stats.reportsByCategory || {};
+
+        renderDailyActivityChart(dailyLogins, dailyRegs);
+        renderQueryTrendChart(dailyQueries);
+        renderReportStatusChart(reportStatusDist);
+        renderReportCategoryChart(reportCatDist);
         renderLanguageDistributionChart(stats.languageDistribution || {});
       }
     } catch (err) {
@@ -670,7 +676,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const role = document.getElementById('filterActivityRole')?.value || '';
     const search = document.getElementById('activitySearchInput')?.value.trim() || '';
 
-    let url = `/api/v1/admin/login-activities?timeRange=${encodeURIComponent(range)}`;
+    let url = `/api/v1/admin/login-activities?filter=${encodeURIComponent(range)}&timeRange=${encodeURIComponent(range)}`;
     if (role) url += `&role=${encodeURIComponent(role)}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
 

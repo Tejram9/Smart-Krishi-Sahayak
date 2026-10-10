@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crop Disease & Pest Advisory - Smart Krishi Sahayak</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    .advisory-page-header {
+      background: white;
+      border: 1px solid var(--border-color, #e0e0e0);
+      border-radius: var(--radius-lg, 16px);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
+    }
+
+    .advisory-tab-nav {
+      background: white;
+      border: 1px solid var(--border-color, #e0e0e0);
+      border-radius: var(--radius-lg, 16px);
+      padding: 0.5rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .advisory-tab-btn {
+      flex: 1 1 200px;
+      padding: 0.85rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-md, 8px);
+      color: var(--text-muted, #616161);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
+    }
+
+    .advisory-tab-btn:hover {
+      background-color: var(--primary-light, #e8f5e9);
+      color: var(--primary-color, #2e7d32);
+    }
+
+    .advisory-tab-btn.active {
+      background-color: var(--primary-color, #2e7d32);
+      color: white !important;
+      box-shadow: 0 4px 6px -1px rgba(46, 125, 50, 0.25);
+    }
+
+    .crop-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .crop-select-card {
+      background: white;
+      border: 2px solid var(--border-color, #e0e0e0);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-column;
+      justify-content: space-between;
+    }
+
+    .crop-select-card:hover {
+      border-color: #81c784;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .crop-select-card.selected {
+      border-color: #2e7d32;
+      background: #f1f8e9;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);
+    }
+
+    .crop-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .symptom-chip-label {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.55rem 1rem;
+      background: white;
+      border: 1.5px solid #cfd8dc;
+      border-radius: 30px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #37474f;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .symptom-chip-label:hover {
+      border-color: #2e7d32;
+      color: #2e7d32;
+      background: #f1f8e9;
+    }
+
+    .symptom-chip-label.active {
+      background: #2e7d32;
+      color: white;
+      border-color: #2e7d32;
+      box-shadow: 0 2px 6px rgba(46, 125, 50, 0.3);
+    }
+
+    .advisory-card {
+      border-radius: 14px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .advisory-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08) !important;
+    }
+
+    .cursor-pointer {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container-fluid max-width-container">
+      <a class="navbar-brand-text" href="/index.html">
+        <span class="brand-icon"><i class="bi bi-tree-fill"></i></span>
+        <span data-i18n="app_name">Smart Krishi Sahayak</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <div class="d-flex align-items-center gap-2 ms-auto flex-wrap mt-2 mt-lg-0">
+          <a href="/farmer-dashboard.html" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-speedometer2"></i> <span data-i18n="nav_dashboard">Dashboard</span>
+          </a>
+          <a href="/crop-info.html" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-journal-text"></i> <span data-i18n="nav_crops">Crops</span>
+          </a>
+          <a href="/crop-disease-advisory.html" class="btn btn-success btn-sm d-flex align-items-center gap-1 active text-white">
+            <i class="bi bi-shield-shaded"></i> <span data-i18n="nav_disease_advisory">Disease & Pest Advisory</span>
+          </a>
+          <a href="/equipment-irrigation.html" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-gear-wide-connected"></i> <span data-i18n="nav_equipment_guide">Equipment & Irrigation</span>
+          </a>
+          <a href="/reports.html" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-headset"></i> <span>Helpdesk</span>
+          </a>
+          <a href="/about.html" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-info-circle"></i> <span data-i18n="nav_about">About Us</span>
+          </a>
+          <!-- Language Selector -->
+          <select class="lang-select" aria-label="Select Language">
+            <option value="EN">English (EN)</option>
+            <option value="MR">मराठी (MR)</option>
+            <option value="HI">हिंदी (HI)</option>
+          </select>
+          <!-- Auth Buttons -->
+          <a href="/login.html" id="navLoginBtn" class="btn btn-sm btn-custom-primary" style="display: none;">
+            <i class="bi bi-box-arrow-in-right"></i> <span data-i18n="nav_login">Login</span>
+          </a>
+          <button id="logoutBtn" class="btn-logout" style="display: none;">
+            <i class="bi bi-box-arrow-right"></i> <span data-i18n="nav_logout">Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="dashboard-container">
+
+    <!-- Page Header Card -->
+    <div class="advisory-page-header">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+          <span class="badge bg-success-subtle text-success px-3 py-1 mb-2 rounded-pill fw-semibold" data-i18n="advisory_badge_verified">
+            <i class="bi bi-patch-check-fill me-1"></i> ICAR & State Agriculture University Verified Science
+          </span>
+          <h2 class="fw-bold text-dark mb-1" data-i18n="advisory_page_title">Crop Disease & Pest Advisory Hub</h2>
+          <p class="text-muted mb-0" data-i18n="advisory_page_subtitle">
+            Reliable, farmer-friendly decision support for crop disease, pest infestation, and nutrient deficiency management.
+          </p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-success btn-sm" onclick="CropDiseaseAdvisoryApp.simulateAiDiagnosis('cotton_bollworm')">
+            <i class="bi bi-robot me-1"></i> <span data-i18n="advisory_btn_ai_preview">AI Diagnosis Demo</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prominent Non-Definitive Decision Support & Safety Notice Banner -->
+    <div class="alert alert-warning border border-warning-subtle shadow-sm rounded-4 p-3 mb-4 d-flex align-items-start gap-3">
+      <div class="text-warning-emphasis fs-3"><i class="bi bi-shield-exclamation"></i></div>
+      <div class="flex-grow-1">
+        <h6 class="fw-bold text-dark mb-1" data-i18n="advisory_safety_banner_title">
+          Decision Support Guide & Statutory Agriculture Notice
+        </h6>
+        <p class="small text-secondary mb-1" data-i18n="advisory_safety_banner_desc">
+          Advisory suggestions are <strong>possible matches based on selected symptoms</strong> and published ICAR/SAU Package of Practices. They do not constitute an official laboratory diagnosis.
+        </p>
+        <div class="small text-dark fw-medium" data-i18n="advisory_safety_banner_rule">
+          <i class="bi bi-check-circle-fill text-success me-1"></i>
+          Chemical treatments must strictly adhere to <strong>CIBRC registered label claims</strong> and should only be undertaken if the pest crosses the Economic Threshold Level (ETL). When in doubt, consult your local Krishi Vigyan Kendra (KVK) or Agriculture Extension Officer.
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <div class="advisory-tab-nav">
+      <button class="advisory-tab-btn active" data-tab="guided">
+        <i class="bi bi-signpost-split"></i>
+        <span data-i18n="tab_guided_flow">Guided Advisory Flow</span>
+      </button>
+      <button class="advisory-tab-btn" data-tab="library">
+        <i class="bi bi-collection"></i>
+        <span data-i18n="tab_advisory_library">Complete Advisory Library</span>
+      </button>
+      <button class="advisory-tab-btn" data-tab="ai-connector">
+        <i class="bi bi-robot"></i>
+        <span data-i18n="tab_ai_connector">AI Image Diagnostic Connector</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: GUIDED ADVISORY FLOW -->
+    <section id="tab-guided" class="advisory-tab-content">
+
+      <!-- Step 1: Select Crop -->
+      <div class="card p-4 rounded-4 shadow-sm border mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <div>
+            <span class="badge bg-success text-white px-2 py-1 me-2 fw-semibold">Step 1</span>
+            <h4 class="fw-bold d-inline text-dark" data-i18n="guided_step1_title">Select Target Crop</h4>
+          </div>
+          <div class="w-100 w-md-auto" style="max-width: 320px;">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" id="guidedCropSearch" class="form-control" placeholder="Search crops..." data-i18n-placeholder="guided_search_crop_ph">
+            </div>
+          </div>
+        </div>
+
+        <div id="guidedCropSelector" class="crop-selector-grid">
+          <!-- Dynamically populated by CropDiseaseAdvisoryApp -->
+        </div>
+      </div>
+
+      <!-- Step 2: Select Symptoms & Plant Parts -->
+      <div class="card p-4 rounded-4 shadow-sm border mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <div>
+            <span class="badge bg-success text-white px-2 py-1 me-2 fw-semibold">Step 2</span>
+            <h4 class="fw-bold d-inline text-dark" data-i18n="guided_step2_title">Select Observed Symptoms & Problem</h4>
+          </div>
+          <div>
+            <span class="text-muted small me-1">Active Crop:</span>
+            <span id="activeGuidedCropName" class="badge bg-success-subtle text-success fw-bold px-3 py-1">Cotton</span>
+          </div>
+        </div>
+
+        <!-- Affected Plant Part Chips -->
+        <div class="mb-4">
+          <label class="form-label fw-bold text-dark small text-uppercase mb-2" data-i18n="guided_select_part_label">
+            1. Affected Plant Part (Select all that apply)
+          </label>
+          <div id="guidedPlantParts" class="d-flex flex-wrap gap-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Observable Symptoms Checkbox Grid -->
+        <div class="mb-4">
+          <label class="form-label fw-bold text-dark small text-uppercase mb-2" data-i18n="guided_select_symptom_label">
+            2. Observed Indicators & Characteristics
+          </label>
+          <div id="guidedSymptomsList" class="row g-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Custom Keyword Query Input -->
+        <div class="mb-4">
+          <label class="form-label fw-bold text-dark small text-uppercase mb-2" data-i18n="guided_custom_query_label">
+            3. Additional Symptom Description / Keywords (Optional)
+          </label>
+          <input type="text" id="guidedCustomQuery" class="form-control" placeholder="e.g. rosetted flower, yellow rings, oily spots, wilting..." data-i18n-placeholder="guided_custom_query_ph">
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-3 border-top">
+          <button type="button" id="btnResetGuided" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> <span data-i18n="btn_reset_selection">Reset Selection</span>
+          </button>
+          <button type="button" id="btnFindGuidedMatches" class="btn btn-success px-4 py-2 fw-semibold shadow-sm">
+            <i class="bi bi-search me-1"></i> <span data-i18n="btn_find_matches">Find Possible Issues & Guidance</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: View Possible Issues / Matches -->
+      <div id="guidedStep3" class="card p-4 rounded-4 shadow-sm border mb-4 bg-light">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <span class="badge bg-success text-white px-2 py-1 me-2 fw-semibold">Step 3 & 4</span>
+            <h4 class="fw-bold d-inline text-dark" data-i18n="guided_step3_title">Possible Issues & Management Guidance</h4>
+          </div>
+        </div>
+
+        <div id="guidedResultsContainer">
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-arrow-up-circle fs-3 text-success"></i>
+            <p class="mt-2 mb-0" data-i18n="advisory_prompt_select_symptoms">
+              Select observed plant parts and symptoms above, then click "Find Possible Issues".
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: COMPLETE ADVISORY LIBRARY -->
+    <section id="tab-library" class="advisory-tab-content d-none">
+
+      <!-- Library Filter Bar -->
+      <div class="card p-4 rounded-4 shadow-sm border mb-4">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-bold text-dark mb-1" data-i18n="filter_search_label">Search Problem / Disease</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" id="librarySearchInput" class="form-control" placeholder="Search by name, symptom or pathogen..." data-i18n-placeholder="filter_search_placeholder">
+            </div>
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label small fw-bold text-dark mb-1" data-i18n="filter_crop_label">Crop</label>
+            <select id="libraryCropFilter" class="form-select">
+              <option value="all">All Crops</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label small fw-bold text-dark mb-1" data-i18n="filter_category_label">Problem Category</label>
+            <select id="libraryCategoryFilter" class="form-select">
+              <option value="all">All Categories</option>
+              <option value="disease">Disease (बुरशी / जिवाणू)</option>
+              <option value="pest">Insect Pest (कीड / कीटक)</option>
+              <option value="deficiency">Nutrient Deficiency (कमतरता)</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label small fw-bold text-dark mb-1" data-i18n="filter_part_label">Plant Part</label>
+            <select id="libraryPartFilter" class="form-select">
+              <option value="all">All Plant Parts</option>
+              <option value="leaves">Leaves</option>
+              <option value="stem">Stem / Trunk</option>
+              <option value="fruit">Fruit / Boll / Grain</option>
+              <option value="root">Roots / Rhizome</option>
+              <option value="flower">Flower / Buds</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <button type="button" id="btnResetLibraryFilters" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle me-1"></i> <span data-i18n="btn_clear_filters">Clear Filters</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top">
+          <div class="small text-muted">
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle me-1"><i class="bi bi-virus me-1"></i>Disease</span>
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle me-1"><i class="bi bi-bug-fill me-1"></i>Insect Pest</span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-droplet-half me-1"></i>Nutrient Deficiency</span>
+          </div>
+          <span id="advisoryCountBadge" class="badge bg-success-subtle text-success fw-bold px-3 py-1">0 Entries</span>
+        </div>
+      </div>
+
+      <!-- Library Grid -->
+      <div id="advisoryLibraryGrid" class="row g-4">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- TAB 3: AI IMAGE DIAGNOSTIC CONNECTOR -->
+    <section id="tab-ai-connector" class="advisory-tab-content d-none">
+      <div class="card p-4 rounded-4 shadow-sm border mb-4">
+        <div class="row align-items-center g-4">
+          <div class="col-12 col-lg-8">
+            <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill fw-semibold mb-2">
+              <i class="bi bi-cpu me-1"></i> Future AI Readiness Architecture
+            </span>
+            <h3 class="fw-bold text-dark mb-2" data-i18n="ai_connector_title">AI Vision Diagnostic Integration</h3>
+            <p class="text-secondary mb-3" data-i18n="ai_connector_desc">
+              Smart Krishi Sahayak is architected so any computer vision / deep learning plant pathology model seamlessly plugs into the standardized advisory schema. The model passes a predicted disease class and confidence, and this advisory engine renders the verified ICAR/SAU package of practices without modifying the UI or backend.
+            </p>
+
+            <div class="p-3 rounded-3 bg-light border mb-3">
+              <label class="form-label fw-bold text-dark small" data-i18n="ai_select_sample_label">Select an AI Vision Model Diagnostic Simulation:</label>
+              <div class="row g-2 align-items-center">
+                <div class="col-12 col-sm-8">
+                  <select id="aiSamplePredictorSelect" class="form-select">
+                    <option value="cotton_bollworm">Cotton: Pink Bollworm (94% Model Confidence)</option>
+                    <option value="soybean_rust">Soybean: Rust / Phakopsora (96% Model Confidence)</option>
+                    <option value="pomegranate_telya">Pomegranate: Bacterial Blight Telya (92% Model Confidence)</option>
+                    <option value="tomato_early_blight">Tomato: Early Blight Alternaria (95% Model Confidence)</option>
+                    <option value="onion_purple_blotch">Onion: Purple Blotch Karpa (91% Model Confidence)</option>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-4">
+                  <button type="button" id="btnSimulateAiMatch" class="btn btn-primary w-100 fw-semibold">
+                    <i class="bi bi-play-circle me-1"></i> <span data-i18n="btn_run_ai_match">Simulate AI Result</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <a href="/farmer-dashboard.html" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-camera-fill me-1"></i> <span>Open Live Leaf Scanner on Dashboard</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-4 text-center">
+            <div class="p-4 bg-light rounded-4 border">
+              <i class="bi bi-bounding-box-circles text-success display-3"></i>
+              <h6 class="fw-bold text-dark mt-3 mb-1">Standardized Advisory Output</h6>
+              <p class="small text-muted mb-0">Every AI prediction links to ICAR citations, cultural controls, and CIBRC chemical regulations.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- STRUCTURED ADVISORY DETAIL MODAL -->
+  <div class="modal fade" id="advisoryDetailModal" tabindex="-1" aria-labelledby="modalAdvisoryTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header bg-light border-bottom px-4 py-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+              <span id="modalAdvisoryCropBadge" class="badge bg-light text-dark border">Cotton</span>
+              <span id="modalAdvisoryCategoryBadge" class="badge bg-danger-subtle text-danger border border-danger-subtle">Disease</span>
+            </div>
+            <h4 class="modal-title fw-bold text-dark mb-0" id="modalAdvisoryTitle">Problem Title</h4>
+            <div id="modalAdvisoryScientific" class="text-muted small fst-italic">Causal Organism</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body px-4 py-3">
+          <!-- Optional AI Detection Notification Banner -->
+          <div id="modalAiNoticeBanner" class="mb-4 d-none"></div>
+
+          <!-- Non-Definitive Decision Support Badge -->
+          <div class="alert alert-light border border-secondary-subtle p-2 mb-4 d-flex align-items-center gap-2 small text-secondary">
+            <i class="bi bi-info-circle text-primary fs-5"></i>
+            <span><strong>Notice:</strong> This entry is based on verified university packages of practices and provides decision guidance. Verify with your local KVK for certified field confirmation.</span>
+          </div>
+
+          <!-- 1. Symptoms & Affected Parts -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-search text-danger"></i> <span data-i18n="modal_section_symptoms">Key Symptoms & Field Indicators</span>
+            </h6>
+            <div class="mb-2">
+              <span class="small fw-bold text-secondary">Affected Plant Part: </span>
+              <span id="modalAffectedParts" class="small fw-semibold text-dark">Leaves</span>
+            </div>
+            <ul id="modalSymptomsList" class="small text-secondary mb-0 ps-3"></ul>
+          </div>
+
+          <!-- 2. Typical Conditions -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-cloud-sun text-warning"></i> <span data-i18n="modal_section_conditions">Typical Associated Conditions & Environment</span>
+            </h6>
+            <p id="modalTypicalConditions" class="small text-secondary mb-0"></p>
+          </div>
+
+          <!-- 3. Prevention & Cultural Practices -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-shield-check text-success"></i> <span data-i18n="modal_section_prevention">Prevention & Agronomic Cultural Practices</span>
+            </h6>
+            <ul id="modalPreventionList" class="small text-secondary mb-0 ps-3"></ul>
+          </div>
+
+          <!-- 4. Integrated Management Options -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-gear-wide-connected text-primary"></i> <span data-i18n="modal_section_ipm">Integrated Pest & Disease Management Options</span>
+            </h6>
+            
+            <div class="p-3 rounded-3 bg-light border mb-3">
+              <div class="fw-bold text-dark small mb-1"><i class="bi bi-tree text-success me-1"></i> Cultural Measures:</div>
+              <ul id="modalMgmtCulturalList" class="small text-secondary mb-0 ps-3"></ul>
+            </div>
+
+            <div class="p-3 rounded-3 bg-light border mb-3">
+              <div class="fw-bold text-dark small mb-1"><i class="bi bi-bug text-warning me-1"></i> Biological & Mechanical Controls:</div>
+              <ul id="modalMgmtBioList" class="small text-secondary mb-0 ps-3"></ul>
+            </div>
+
+            <div class="p-3 rounded-3 bg-warning-subtle border border-warning-subtle">
+              <div class="fw-bold text-dark small mb-1"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Chemical Threshold & CIBRC Caution Guidance:</div>
+              <p id="modalMgmtChemicalCaution" class="small text-secondary mb-0"></p>
+            </div>
+          </div>
+
+          <!-- 5. Warning Signs Requiring Expert Consultation -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-danger border-bottom pb-2 mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-telephone-exclamation-fill text-danger"></i> <span data-i18n="modal_section_expert_signs">Warning Signs Requiring Expert / KVK Consultation</span>
+            </h6>
+            <div class="p-3 rounded-3 bg-danger-subtle border border-danger-subtle">
+              <ul id="modalExpertSignsList" class="small text-danger-emphasis mb-0 ps-3"></ul>
+            </div>
+          </div>
+
+          <!-- 6. Authoritative Source Citation -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-award text-success"></i> <span data-i18n="modal_section_source">Authoritative Agriculture & Research Source</span>
+            </h6>
+            <div id="modalAuthoritativeSourceContainer"></div>
+          </div>
+
+          <!-- 7. Safety Notice -->
+          <div class="pt-3 border-top">
+            <p id="modalSafetyNoticeText" class="small text-muted fst-italic mb-0"></p>
+          </div>
+        </div>
+
+        <div class="modal-footer bg-light border-top px-4 py-3">
+          <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center">
+      <p data-i18n="footer_text">© 2026 Smart Krishi Sahayak. Dedicated to Indian Agriculture & Farmer Prosperity.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/crop-disease-advisory-data.js"></script>
+  <script src="/js/crop-disease-advisory.js"></script>
+</body>
+</html>

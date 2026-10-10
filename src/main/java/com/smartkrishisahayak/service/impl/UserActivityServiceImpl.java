@@ -113,17 +113,23 @@ public class UserActivityServiceImpl implements UserActivityService {
             LocalDate today = LocalDate.now();
             if ("today".equals(f)) {
                 fromDate = today.atStartOfDay();
-            } else if ("week".equals(f)) {
+            } else if ("week".equals(f) || "7d".equals(f) || "7days".equals(f)) {
                 fromDate = today.minusDays(7).atStartOfDay();
-            } else if ("month".equals(f)) {
+            } else if ("month".equals(f) || "30d".equals(f) || "30days".equals(f)) {
                 fromDate = today.minusDays(30).atStartOfDay();
             }
         }
 
         UserRole role = null;
         if (roleStr != null && !roleStr.trim().isEmpty() && !"ALL".equalsIgnoreCase(roleStr.trim())) {
+            String normalizedRole = roleStr.trim().toUpperCase();
+            if ("FARMER".equals(normalizedRole)) {
+                normalizedRole = "ROLE_FARMER";
+            } else if ("ADMIN".equals(normalizedRole)) {
+                normalizedRole = "ROLE_ADMIN";
+            }
             try {
-                role = UserRole.valueOf(roleStr.trim().toUpperCase());
+                role = UserRole.valueOf(normalizedRole);
             } catch (IllegalArgumentException e) {
                 // Ignore invalid role filter
             }

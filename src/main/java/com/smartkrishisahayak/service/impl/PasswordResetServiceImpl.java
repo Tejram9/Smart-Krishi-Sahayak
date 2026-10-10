@@ -30,14 +30,17 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final org.springframework.core.env.Environment environment;
 
     @Autowired
     public PasswordResetServiceImpl(UserRepository userRepository,
                                     PasswordResetTokenRepository tokenRepository,
-                                    PasswordEncoder passwordEncoder) {
+                                    PasswordEncoder passwordEncoder,
+                                    org.springframework.core.env.Environment environment) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
+        this.environment = environment;
     }
 
     @Override
@@ -70,12 +73,26 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         PasswordResetToken resetToken = new PasswordResetToken(user, otpToken, expiry);
         tokenRepository.save(resetToken);
 
+        boolean isProd = false;
+        if (environment != null && environment.getActiveProfiles() != null) {
+            for (String profile : environment.getActiveProfiles()) {
+                if ("prod".equalsIgnoreCase(profile) || "production".equalsIgnoreCase(profile)) {
+                    isProd = true;
+                    break;
+                }
+            }
+        }
+
         // In development/test or if external mail is not configured, output OTP directly to logs for testing
         log.info("===============================================================================");
         log.info(">>> PASSWORD RESET OTP GENERATED <<<");
         log.info("Target User: {} (ID: {})", user.getFullName(), user.getId());
         log.info("Identifier: {}", identifier);
-        log.info("SECURE RESET OTP: >>> {} <<<", otpToken);
+        if (isProd) {
+            log.info("SECURE RESET OTP: >>> [PROTECTED IN PRODUCTION - SENT VIA SMS/EMAIL] <<<");
+        } else {
+            log.info("SECURE RESET OTP: >>> {} <<<", otpToken);
+        }
         log.info("Valid for: {} minutes (Expires at: {})", OTP_EXPIRY_MINUTES, expiry);
         log.info("===============================================================================");
     }

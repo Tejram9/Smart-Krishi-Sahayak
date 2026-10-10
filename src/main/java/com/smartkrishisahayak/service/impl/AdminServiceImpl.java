@@ -457,7 +457,27 @@ public class AdminServiceImpl implements AdminService {
                         .collect(Collectors.toList())
         );
 
-        // 4. Existing System Overview
+        // 4. Daily Queries Trend Past 7 Days
+        Map<String, Long> queryMap = new LinkedHashMap<>();
+        for (int i = 6; i >= 0; i--) {
+            queryMap.put(today.minusDays(i).format(dtf), 0L);
+        }
+        List<ChatMessage> allUserMsgs = chatMessageRepository.findBySenderOrderByTimestampDesc(MessageSender.USER);
+        for (ChatMessage m : allUserMsgs) {
+            if (m.getTimestamp() != null) {
+                String qDate = m.getTimestamp().toLocalDate().format(dtf);
+                if (queryMap.containsKey(qDate)) {
+                    queryMap.put(qDate, queryMap.get(qDate) + 1L);
+                }
+            }
+        }
+        response.setDailyQueries(
+                queryMap.entrySet().stream()
+                        .map(e -> new AdminDetailedAnalyticsResponse.TimePointStat(e.getKey(), e.getValue()))
+                        .collect(Collectors.toList())
+        );
+
+        // 5. Existing System Overview
         response.setTotalQueriesAnswered(chatMessageRepository.countBySender(MessageSender.AI));
         response.setTotalCropsManaged(cropRepository.count());
         response.setTotalAdvisoriesPublished(contentRepository.count());

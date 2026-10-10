@@ -296,12 +296,12 @@
               <option value="RESOLVED">Resolved</option>
               <option value="REJECTED">Rejected</option>
             </select>
-            <select id="filterReportCategory" class="form-select form-select-sm" style="width: 170px;">
+            <select id="filterReportCategory" class="form-select form-select-sm" style="width: 190px;">
               <option value="">All Categories</option>
-              <option value="BUG">Bug Report</option>
-              <option value="FEATURE_REQUEST">Feature Request</option>
-              <option value="ACCOUNT_ISSUE">Account Issue</option>
-              <option value="CROP_DATA_ERROR">Crop Data Error</option>
+              <option value="TECHNICAL_ISSUE">Technical Issue</option>
+              <option value="SERVICE_ISSUE">Service Issue</option>
+              <option value="INCORRECT_INFORMATION">Incorrect Information</option>
+              <option value="AGRICULTURE_DISEASE">Agriculture / Disease</option>
               <option value="OTHER">Other</option>
             </select>
             <button id="btnRefreshReports" class="btn btn-sm btn-outline-success">
@@ -500,6 +500,8 @@
         </div>
       </div>
     </div>
+  </div>
+
   <!-- MODAL: Review & Update User Report -->
   <div class="modal fade" id="reportReviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">

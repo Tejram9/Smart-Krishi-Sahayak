@@ -30,6 +30,9 @@ public class AdminDetailedAnalyticsResponse {
     private long totalAdvisoriesPublished;
     private Map<String, Long> languageDistribution;
 
+    // Daily Query Statistics
+    private List<TimePointStat> dailyQueries;
+
     public AdminDetailedAnalyticsResponse() {
     }
 
@@ -60,6 +63,47 @@ public class AdminDetailedAnalyticsResponse {
         public void setCount(long count) {
             this.count = count;
         }
+    }
+
+    // Aliases and convenience getters for frontend consistency
+    public long getTotalUsers() {
+        return totalFarmers + totalAdmins;
+    }
+
+    public long getTotalLoginsToday() {
+        return todayLogins;
+    }
+
+    public long getActiveSessionsToday() {
+        return activeSessions;
+    }
+
+    public List<TimePointStat> getDailyLogins() {
+        return loginTrend;
+    }
+
+    public List<TimePointStat> getDailyRegistrations() {
+        return registrationTrend;
+    }
+
+    public Map<String, Long> getReportStatusDistribution() {
+        return reportsByStatus;
+    }
+
+    public Map<String, Long> getReportCategoryDistribution() {
+        return reportsByCategory;
+    }
+
+    public List<TimePointStat> getDailyQueries() {
+        return dailyQueries;
+    }
+
+    public void setDailyQueries(List<TimePointStat> dailyQueries) {
+        this.dailyQueries = dailyQueries;
+    }
+
+    public List<TimePointStat> getQueryTrend() {
+        return dailyQueries;
     }
 
     // Getters and Setters

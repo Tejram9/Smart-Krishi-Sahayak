@@ -120,8 +120,14 @@ public class ChatServiceImpl implements ChatService {
             // Off-topic queries receive polite direct redirection without LLM invocation
             aiText = safetyAssessment.getDirectResponse();
         } else {
-            // Generate grounded response from AI provider
-            String rawAiText = aiChatService.generateResponse(request.getMessage(), language, verifiedContext);
+            // Generate grounded response from AI provider with graceful fallback
+            String rawAiText;
+            try {
+                rawAiText = aiChatService.generateResponse(request.getMessage(), language, verifiedContext);
+            } catch (Exception ex) {
+                log.warn("AI service provider call failed: {}. Generating grounded fallback response.", ex.getMessage());
+                rawAiText = generateFallbackAdvisory(request.getMessage(), language, verifiedContext);
+            }
             // Post-process & sanitize response to ensure mandatory expert referrals where appropriate
             aiText = agricultureSafetyService.sanitizeAiResponse(rawAiText, request.getMessage(), language, safetyAssessment);
         }
@@ -194,6 +200,28 @@ public class ChatServiceImpl implements ChatService {
         } catch (IllegalArgumentException e) {
             log.debug("Unknown language value '{}', using session default.", langStr);
             return null;
+        }
+    }
+
+    private String generateFallbackAdvisory(String userQuery, PreferredLanguage language, String verifiedContext) {
+        if (verifiedContext != null && !verifiedContext.trim().isEmpty()) {
+            if (language == PreferredLanguage.MR) {
+                return "शेतकरी मित्र, आमच्या प्रमाणित कृषी माहितीनुसार:\n\n" + verifiedContext +
+                        "\n\nटीप: अधिक मार्गदर्शनासाठी जवळच्या कृषी विज्ञान केंद्र (KVK) किंवा किसान कॉल सेंटर (1800-180-1551) शी संपर्क साधा.";
+            } else if (language == PreferredLanguage.HI) {
+                return "किसान मित्र, हमारे सत्यापित कृषि डेटाबेस के अनुसार:\n\n" + verifiedContext +
+                        "\n\nनोट: अधिक जानकारी के लिए निकटतम कृषि विज्ञान केंद्र (KVK) या किसान कॉल सेंटर (1800-180-1551) से संपर्क करें।";
+            } else {
+                return "Farmer Friend, based on verified agricultural guidance from our knowledge base:\n\n" + verifiedContext +
+                        "\n\nNote: For further assistance, contact your local Krishi Vigyan Kendra (KVK) or Kisan Call Center (1800-180-1551).";
+            }
+        }
+        if (language == PreferredLanguage.MR) {
+            return "शेतकरी मित्र, तुमच्या प्रश्नासाठी (" + userQuery + ") आम्ही शिफारस करतो की स्थानिक कृषी तज्ज्ञ किंवा किसान कॉल सेंटर (1800-180-1551) शी संपर्क साधावा. कृपया शिफारस केलेल्या पीक संरक्षण आणि खत व्यवस्थापनाचे पालन करा.";
+        } else if (language == PreferredLanguage.HI) {
+            return "किसान मित्र, आपके प्रश्न (" + userQuery + ") के लिए हम सलाह देते हैं कि आप स्थानीय कृषि विस्तार अधिकारी या किसान कॉल सेंटर (1800-180-1551) से संपर्क करें। कृपया अनुशंसित फसल सुरक्षा और उर्वरक पद्धतियों का पालन करें।";
+        } else {
+            return "Dear Farmer, regarding your query about \"" + userQuery + "\", we recommend consulting your nearest agricultural extension officer or calling the Kisan Call Center (Toll-Free: 1800-180-1551). Always follow recommended agronomic practices for pest management, fertilization, and irrigation.";
         }
     }
 }
