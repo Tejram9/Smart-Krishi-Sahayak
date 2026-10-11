@@ -91,13 +91,16 @@ public class JwtService {
     }
 
     public Long getUserIdFromJwt(String token) {
-        Claims claims = Jwts.parser()
+        Claims claims = getClaimsFromJwt(token);
+        return Long.parseLong(claims.getSubject());
+    }
+
+    public Claims getClaimsFromJwt(String token) {
+        return Jwts.parser()
                 .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
-        return Long.parseLong(claims.getSubject());
     }
 
     public boolean validateToken(String authToken) {

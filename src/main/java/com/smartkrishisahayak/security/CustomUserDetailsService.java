@@ -36,4 +36,50 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return UserPrincipal.create(user);
     }
+
+    @Transactional
+    public UserDetails loadOrCreateUserFromJwt(Long id, String mobileNumber, String roleStr) {
+        java.util.Optional<User> existing = userRepository.findById(id);
+        if (existing.isPresent()) {
+            return UserPrincipal.create(existing.get());
+        }
+
+        if (mobileNumber != null && !mobileNumber.trim().isEmpty()) {
+            java.util.Optional<User> byMobile = userRepository.findByMobileNumber(mobileNumber.trim());
+            if (byMobile.isPresent()) {
+                return UserPrincipal.create(byMobile.get());
+            }
+        }
+
+        // Auto-seed or recover user for ephemeral/serverless container instance
+        com.smartkrishisahayak.entity.enums.UserRole role =
+                "ROLE_ADMIN".equalsIgnoreCase(roleStr) ? com.smartkrishisahayak.entity.enums.UserRole.ROLE_ADMIN : com.smartkrishisahayak.entity.enums.UserRole.ROLE_FARMER;
+
+        String safeMobile = (mobileNumber != null && !mobileNumber.trim().isEmpty()) ? mobileNumber.trim() : ("9876543210");
+        String safeName = "ROLE_ADMIN".equalsIgnoreCase(roleStr) ? "System Admin" : "Rameshwar Patil (बळीराजा)";
+        com.smartkrishisahayak.entity.enums.PreferredLanguage lang =
+                "ROLE_ADMIN".equalsIgnoreCase(roleStr) ? com.smartkrishisahayak.entity.enums.PreferredLanguage.EN : com.smartkrishisahayak.entity.enums.PreferredLanguage.MR;
+
+        User recovered = new User(
+                safeName,
+                safeMobile,
+                "$2a$10$wT8K5kX1b5s3vL2q2.2P8.wW2R0H4G8kQ6O4N2M0K8L6J4H2G0",
+                lang,
+                role
+        );
+        if (role == com.smartkrishisahayak.entity.enums.UserRole.ROLE_ADMIN) {
+            recovered.setEmail("admin@smartkrishi.gov.in");
+        } else {
+            recovered.setEmail("farmer.demo@smartkrishi.gov.in");
+        }
+
+        try {
+            return UserPrincipal.create(userRepository.save(recovered));
+        } catch (Exception ex) {
+            // In case of concurrent insert on duplicate mobile
+            return userRepository.findByMobileNumber(safeMobile)
+                    .map(UserPrincipal::create)
+                    .orElseGet(() -> UserPrincipal.create(recovered));
+        }
+    }
 }

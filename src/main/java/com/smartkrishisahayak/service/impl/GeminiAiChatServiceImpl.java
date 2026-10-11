@@ -37,8 +37,9 @@ import java.util.List;
 public class GeminiAiChatServiceImpl implements AiChatService {
 
     private static final Logger log = LoggerFactory.getLogger(GeminiAiChatServiceImpl.class);
-    public static final String DEFAULT_MODEL = "gemini-3.8-flash";
+    public static final String DEFAULT_MODEL = "gemini-3.5-flash";
     public static final String DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com";
+    private static final List<String> FALLBACK_MODELS = List.of("gemini-3.5-flash", "gemini-flash-latest", "gemini-3.8-flash");
 
     private final String apiKey;
     private final String model;
@@ -50,7 +51,7 @@ public class GeminiAiChatServiceImpl implements AiChatService {
     @Autowired
     public GeminiAiChatServiceImpl(
             @Value("${app.ai.gemini.api-key:}") String apiKey,
-            @Value("${app.ai.gemini.model:gemini-3.8-flash}") String model,
+            @Value("${app.ai.gemini.model:gemini-3.5-flash}") String model,
             @Value("${app.ai.gemini.base-url:https://generativelanguage.googleapis.com}") String baseUrl,
             @Value("${app.ai.gemini.timeout-ms:30000}") String timeoutMsStr,
             ObjectMapper objectMapper) {
@@ -149,67 +150,85 @@ public class GeminiAiChatServiceImpl implements AiChatService {
         String promptWithContext = buildUserPromptText(userQuery.trim(), verifiedContext);
         String requestPayload = buildRequestBody(promptWithContext, systemPrompt);
 
-        // Normalized endpoint URL without query param key
-        String endpointUrl = String.format("%s/v1beta/models/%s:generateContent", baseUrl, model);
+        List<String> modelsToTry = new ArrayList<>();
+        modelsToTry.add(this.model);
+        for (String fb : FALLBACK_MODELS) {
+            if (!modelsToTry.contains(fb)) {
+                modelsToTry.add(fb);
+            }
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("x-goog-api-key", apiKey);
         HttpEntity<String> entity = new HttpEntity<>(requestPayload, headers);
 
-        try {
-            log.info("Sending request to Gemini API [model={}, language={}, queryLength={}, hasGroundedContext={}]",
-                    model, targetLang, userQuery.length(), (verifiedContext != null && !verifiedContext.trim().isEmpty()));
+        for (int i = 0; i < modelsToTry.size(); i++) {
+            String currentModel = modelsToTry.get(i);
+            String endpointUrl = String.format("%s/v1beta/models/%s:generateContent", baseUrl, currentModel);
 
-            ResponseEntity<String> response = restTemplate.exchange(
-                    endpointUrl,
-                    HttpMethod.POST,
-                    entity,
-                    String.class
-            );
+            try {
+                log.info("Sending request to Gemini API [model={}, language={}, queryLength={}, hasGroundedContext={}]",
+                        currentModel, targetLang, userQuery.length(), (verifiedContext != null && !verifiedContext.trim().isEmpty()));
 
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return extractTextFromResponse(response.getBody(), targetLang);
-            } else {
-                log.error("Gemini API returned unexpected status code: {}", response.getStatusCode());
-                throw new AiServiceException("AI provider returned unexpected status: " + response.getStatusCode());
+                ResponseEntity<String> response = restTemplate.exchange(
+                        endpointUrl,
+                        HttpMethod.POST,
+                        entity,
+                        String.class
+                );
+
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    return extractTextFromResponse(response.getBody(), targetLang);
+                } else {
+                    log.error("Gemini API returned unexpected status code: {}", response.getStatusCode());
+                    throw new AiServiceException("AI provider returned unexpected status: " + response.getStatusCode());
+                }
+
+            } catch (HttpStatusCodeException ex) {
+                String responseBody = ex.getResponseBodyAsString();
+                String sanitizedDetails = extractErrorMessageDetails(responseBody);
+                int statusVal = ex.getStatusCode().value();
+
+                if (statusVal == 503 && i < modelsToTry.size() - 1) {
+                    log.warn("Gemini model {} returned HTTP 503 (high demand). Retrying with fallback model {}...",
+                            currentModel, modelsToTry.get(i + 1));
+                    continue;
+                }
+
+                if (statusVal == 404) {
+                    log.error("Gemini request failed: HTTP 404. Model: {}, Endpoint: {}, Details: {}", currentModel, endpointUrl, sanitizedDetails);
+                    throw new AiServiceException("AI service error (404): Configured Gemini model (" + currentModel + ") was not found or is unavailable at endpoint: " + endpointUrl + (sanitizedDetails.isEmpty() ? "" : ". Details: " + sanitizedDetails));
+                } else if (statusVal == 403) {
+                    log.error("Gemini request failed: HTTP 403. Details: {}", sanitizedDetails);
+                    throw new AiServiceException("AI service error (403): Invalid or unauthorized Gemini API key.");
+                } else if (statusVal == 429) {
+                    log.error("Gemini request failed: HTTP 429. Details: {}", sanitizedDetails);
+                    throw new AiServiceException("AI service error (429): Rate limit or API quota exceeded. Please wait a moment and try again.");
+                } else if (statusVal == 400) {
+                    log.error("Gemini request failed: HTTP 400. Details: {}", sanitizedDetails);
+                    throw new AiServiceException("AI service error (400): " + (sanitizedDetails.isEmpty() ? "Invalid request arguments." : sanitizedDetails));
+                } else if (statusVal >= 500) {
+                    log.error("Gemini request failed: HTTP {}. Details: {}", statusVal, sanitizedDetails);
+                    throw new AiServiceException("AI service error (" + statusVal + "): Gemini AI service is temporarily unavailable. Please try again later.");
+                } else {
+                    log.error("Gemini request failed: HTTP {}. Details: {}", statusVal, sanitizedDetails);
+                    throw new AiServiceException("AI service error (" + statusVal + "): " + sanitizedDetails);
+                }
+
+            } catch (ResourceAccessException ex) {
+                log.error("Gemini API network/timeout error: {}", ex.getMessage());
+                throw new AiServiceException("AI service request timed out or network connection failed. Please try again.");
+
+            } catch (AiServiceException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                log.error("Unexpected error invoking Gemini API: {}", ex.getMessage());
+                throw new AiServiceException("Failed to generate AI response: " + ex.getMessage());
             }
-
-        } catch (HttpStatusCodeException ex) {
-            String responseBody = ex.getResponseBodyAsString();
-            String sanitizedDetails = extractErrorMessageDetails(responseBody);
-            int statusVal = ex.getStatusCode().value();
-
-            if (statusVal == 404) {
-                log.error("Gemini request failed: HTTP 404. Model: {}, Endpoint: {}, Details: {}", model, endpointUrl, sanitizedDetails);
-                throw new AiServiceException("AI service error (404): Configured Gemini model (" + model + ") was not found or is unavailable at endpoint: " + endpointUrl + (sanitizedDetails.isEmpty() ? "" : ". Details: " + sanitizedDetails));
-            } else if (statusVal == 403) {
-                log.error("Gemini request failed: HTTP 403. Details: {}", sanitizedDetails);
-                throw new AiServiceException("AI service error (403): Invalid or unauthorized Gemini API key.");
-            } else if (statusVal == 429) {
-                log.error("Gemini request failed: HTTP 429. Details: {}", sanitizedDetails);
-                throw new AiServiceException("AI service error (429): Rate limit or API quota exceeded. Please wait a moment and try again.");
-            } else if (statusVal == 400) {
-                log.error("Gemini request failed: HTTP 400. Details: {}", sanitizedDetails);
-                throw new AiServiceException("AI service error (400): " + (sanitizedDetails.isEmpty() ? "Invalid request arguments." : sanitizedDetails));
-            } else if (statusVal >= 500) {
-                log.error("Gemini request failed: HTTP {}. Details: {}", statusVal, sanitizedDetails);
-                throw new AiServiceException("AI service error (" + statusVal + "): Gemini AI service is temporarily unavailable. Please try again later.");
-            } else {
-                log.error("Gemini request failed: HTTP {}. Details: {}", statusVal, sanitizedDetails);
-                throw new AiServiceException("AI service error (" + statusVal + "): " + sanitizedDetails);
-            }
-
-        } catch (ResourceAccessException ex) {
-            log.error("Gemini API network/timeout error: {}", ex.getMessage());
-            throw new AiServiceException("AI service request timed out or network connection failed. Please try again.");
-
-        } catch (AiServiceException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            log.error("Unexpected error invoking Gemini API: {}", ex.getMessage());
-            throw new AiServiceException("Failed to generate AI response: " + ex.getMessage());
         }
+
+        throw new AiServiceException("All Gemini candidate models failed to generate response.");
     }
 
     @Override

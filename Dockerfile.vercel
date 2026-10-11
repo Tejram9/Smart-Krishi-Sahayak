@@ -19,7 +19,7 @@ RUN mvn dependency:go-offline -B || true
 COPY src ./src
 
 # Build production executable fat JAR, skipping tests for fast and deterministic builds
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -DskipTests -B -Dfile.encoding=UTF-8
 
 # -----------------------------------------------------------------------------
 # Stage 2: Minimal Runtime Environment
@@ -46,6 +46,8 @@ EXPOSE 8080
 # Default environment settings
 ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=prod
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 # Run Spring Boot application, dynamically binding to Vercel's $PORT environment variable on 0.0.0.0
-ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -Djava.security.egd=file:/dev/./urandom -jar /app/app.jar --server.port=${PORT:-8080} --server.address=0.0.0.0"]
+ENTRYPOINT ["sh", "-c", "exec java -Dfile.encoding=UTF-8 -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -Djava.security.egd=file:/dev/./urandom -jar /app/app.jar --server.port=${PORT:-8080} --server.address=0.0.0.0"]
