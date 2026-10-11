@@ -53,7 +53,19 @@ const Auth = (() => {
     return !!getToken();
   }
 
-  async function logout() {
+  async function logout(skipLogoutPage = false) {
+    const user = getCurrentUser();
+    if (user) {
+      try {
+        sessionStorage.setItem('sks_last_logged_out_user', JSON.stringify({
+          fullName: user.fullName || 'Farmer Brother / किसान भाई',
+          role: user.role || 'ROLE_FARMER',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
     try {
       if (getToken() && typeof Api !== 'undefined') {
         await Api.post('/api/v1/auth/logout', null, true);
@@ -62,7 +74,11 @@ const Auth = (() => {
       console.warn('Backend logout notification failed, clearing local session:', e);
     } finally {
       clearAuth();
-      window.location.href = 'login.html';
+      if (skipLogoutPage) {
+        window.location.href = 'login.html?logout=true';
+      } else {
+        window.location.href = 'logout.html';
+      }
     }
   }
 

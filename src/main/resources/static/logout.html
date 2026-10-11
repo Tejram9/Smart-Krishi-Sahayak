@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logged Out - Smart Krishi Sahayak</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container-fluid max-width-container">
+      <a class="navbar-brand-text" href="/index.html">
+        <span class="brand-icon"><i class="bi bi-tree-fill"></i></span>
+        <span data-i18n="app_name">Smart Krishi Sahayak</span>
+      </a>
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        <select class="lang-select" aria-label="Select Language">
+          <option value="EN">English (EN)</option>
+          <option value="MR">मराठी (MR)</option>
+          <option value="HI">हिंदी (HI)</option>
+        </select>
+        <a href="/login.html" class="btn btn-sm btn-outline-success">
+          <i class="bi bi-box-arrow-in-right me-1"></i> <span data-i18n="nav_login">Login</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Logout Container -->
+  <div class="logout-container">
+    <div class="auth-ambient-orb auth-ambient-orb-1"></div>
+    <div class="auth-ambient-orb auth-ambient-orb-2"></div>
+
+    <div class="logout-card">
+      <!-- Animated Checkmark / Sprout Badge -->
+      <div class="logout-success-ring">
+        <i class="bi bi-shield-fill-check"></i>
+      </div>
+
+      <h1 class="logout-title">Securely Logged Out</h1>
+      <p class="logout-desc">
+        Your active session has been safely closed and all agricultural advisory data synchronized. Thank you for using Smart Krishi Sahayak!
+      </p>
+
+      <!-- Session Recap Card -->
+      <div class="session-recap-card">
+        <div class="session-recap-row">
+          <span class="session-recap-label"><i class="bi bi-person me-1"></i> User Account</span>
+          <span class="session-recap-value" id="recapUserName">Farmer</span>
+        </div>
+        <div class="session-recap-row">
+          <span class="session-recap-label"><i class="bi bi-tag me-1"></i> Role Type</span>
+          <span class="session-recap-value text-success" id="recapUserRole">ROLE_FARMER</span>
+        </div>
+        <div class="session-recap-row">
+          <span class="session-recap-label"><i class="bi bi-clock-history me-1"></i> Session Closed</span>
+          <span class="session-recap-value" id="recapLogoutTime">Just now</span>
+        </div>
+        <div class="session-recap-row">
+          <span class="session-recap-label"><i class="bi bi-shield-lock me-1"></i> Tokens Revoked</span>
+          <span class="session-recap-value text-success"><i class="bi bi-check-circle-fill me-1"></i> Protected</span>
+        </div>
+      </div>
+
+      <!-- Countdown Progress Bar -->
+      <div class="countdown-box">
+        <div class="countdown-text" id="countdownLabel">
+          Returning to Login in <span id="countdownNumber" class="text-success fw-bold">5</span> seconds...
+        </div>
+        <div class="countdown-bar-wrap">
+          <div class="countdown-bar-fill" id="countdownBarFill"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="logout-action-grid">
+        <a href="/login.html" class="btn-logout-primary" id="btnRelogin">
+          <i class="bi bi-box-arrow-in-right"></i> <span>Log In Again</span>
+        </a>
+        <a href="/index.html" class="btn-logout-secondary">
+          <i class="bi bi-house"></i> <span>Home Page</span>
+        </a>
+      </div>
+
+      <!-- Quote -->
+      <div class="kisan-quote-banner mt-4">
+        <i class="bi bi-flower2 text-success"></i>
+        <span>"बळीराजा सुखी भव — Wishing Indian Farmers Prosperity & Good Health"</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container text-center">
+      <p data-i18n="footer_text">© 2026 Smart Krishi Sahayak. Dedicated to Indian Agriculture & Farmer Prosperity.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/logout.js"></script>
+</body>
+</html>

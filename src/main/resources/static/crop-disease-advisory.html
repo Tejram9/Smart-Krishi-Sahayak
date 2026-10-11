@@ -75,8 +75,11 @@
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
-      flex-column;
+      flex-direction: column;
       justify-content: space-between;
+      min-width: 0;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .crop-select-card:hover {

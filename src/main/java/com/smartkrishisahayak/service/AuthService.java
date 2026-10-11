@@ -1,5 +1,6 @@
 package com.smartkrishisahayak.service;
 
+import com.smartkrishisahayak.dto.request.AdminRegisterRequest;
 import com.smartkrishisahayak.dto.request.LoginRequest;
 import com.smartkrishisahayak.dto.request.RegisterRequest;
 import com.smartkrishisahayak.dto.response.AuthResponse;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthService {
     AuthResponse registerFarmer(RegisterRequest registerRequest);
+    AuthResponse registerAdmin(AdminRegisterRequest adminRegisterRequest);
     AuthResponse login(LoginRequest loginRequest);
     AuthResponse login(LoginRequest loginRequest, HttpServletRequest request);
     void logout(UserPrincipal userPrincipal);

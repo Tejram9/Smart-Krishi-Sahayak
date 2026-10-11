@@ -146,16 +146,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnOpen = document.getElementById('btnOpenRecModal');
     if (btnOpen) {
       btnOpen.addEventListener('click', () => {
-        const modal = new bootstrap.Modal(document.getElementById('cropRecModal'));
-        modal.show();
+        const modalEl = document.getElementById('cropRecModal');
+        if (modalEl && window.bootstrap) {
+          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modal.show();
+        }
         // Trigger initial recommendation
+        runRecommendation();
+      });
+    }
+
+    const recForm = document.getElementById('cropRecForm');
+    if (recForm) {
+      recForm.addEventListener('submit', (e) => {
+        e.preventDefault();
         runRecommendation();
       });
     }
 
     const btnRun = document.getElementById('btnRunRecommendation');
     if (btnRun) {
-      btnRun.addEventListener('click', runRecommendation);
+      btnRun.addEventListener('click', (e) => {
+        e.preventDefault();
+        runRecommendation();
+      });
     }
   }
 
@@ -170,12 +184,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (container) container.innerHTML = '';
 
     try {
+      const activeLang = currentFarmerLanguage || (localStorage.getItem('sks_language') || localStorage.getItem('preferred_language') || 'EN').toUpperCase();
       const payload = {
         season,
         soilType,
         waterAvailability,
-        district: currentFarmerDistrict,
-        language: currentFarmerLanguage
+        district: currentFarmerDistrict || 'Maharashtra',
+        language: activeLang
       };
       const res = await Api.post('/api/v1/advisory/recommend-crops', payload);
       if (loadingEl) loadingEl.style.display = 'none';
@@ -183,23 +198,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (res && res.success && res.data) {
         const crops = res.data;
         if (crops.length === 0) {
-          container.innerHTML = `<div class="alert alert-warning">No crops found matching these specific conditions.</div>`;
+          container.innerHTML = `
+            <div class="alert alert-warning d-flex align-items-center gap-2">
+              <i class="bi bi-info-circle-fill fs-5"></i>
+              <div>No crops found matching these exact conditions. Try selecting another season or soil type.</div>
+            </div>`;
           return;
         }
 
         container.innerHTML = crops.map(c => `
-          <div class="rec-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h5 class="fw-bold text-success mb-0">${Utils.escapeHtml(c.nameEn)} (${Utils.escapeHtml(c.nameMr || '')} / ${Utils.escapeHtml(c.nameHi || '')})</h5>
-              <span class="rec-score-badge"><i class="bi bi-patch-check-fill me-1"></i> ${c.matchPercentage}% Match</span>
+          <div class="rec-card p-3 mb-3 border rounded shadow-sm bg-white">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <h5 class="fw-bold text-success mb-0">
+                ${Utils.escapeHtml(c.nameEn)} 
+                <span class="fs-6 fw-normal text-muted">(${Utils.escapeHtml(c.nameMr || '')} / ${Utils.escapeHtml(c.nameHi || '')})</span>
+              </h5>
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fs-6 fw-bold">
+                <i class="bi bi-patch-check-fill me-1"></i> ${c.matchPercentage}% Match
+              </span>
             </div>
-            <p class="mb-2 text-dark">${Utils.escapeHtml(c.recommendationReason)}</p>
-            <div class="d-flex flex-wrap gap-2 small text-muted">
+            <p class="mb-2 text-dark fs-6">${Utils.escapeHtml(c.recommendationReason)}</p>
+            <div class="d-flex flex-wrap gap-2 small text-muted pt-2 border-top">
               <span><strong>Category:</strong> ${Utils.escapeHtml(c.category)}</span>
               <span>•</span>
               <span><strong>Water:</strong> ${Utils.escapeHtml(c.waterRequirement || 'Medium')}</span>
               <span>•</span>
               <span><strong>Soil:</strong> ${Utils.escapeHtml(c.soilRequirements || '-')}</span>
+              <span>•</span>
+              <span><strong>Season:</strong> ${Utils.escapeHtml(c.suitableSeason || '-')}</span>
             </div>
           </div>
         `).join('');

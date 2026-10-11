@@ -82,6 +82,8 @@
   border-radius: var(--radius-md);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .profile-label {
@@ -97,6 +99,8 @@
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-dark);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .module-grid {
@@ -1003,6 +1007,8 @@
   align-items: center;
   gap: 1.25rem;
   transition: var(--transition-fast);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .admin-stat-card:hover {
@@ -1028,11 +1034,17 @@
 .icon-teal { background: #e0f2f1; color: #00796b; }
 .icon-red { background: #ffebee; color: #c62828; }
 
+.admin-stat-info {
+  min-width: 0;
+  flex: 1;
+}
+
 .admin-stat-info h3 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0;
   color: var(--text-dark);
+  word-break: break-word;
 }
 
 .admin-stat-info p {
@@ -1040,6 +1052,7 @@
   color: var(--text-muted);
   margin: 0;
   font-weight: 500;
+  word-break: break-word;
 }
 
 .admin-table-card {
@@ -1071,6 +1084,8 @@
 
 .admin-table-container {
   overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-table {
@@ -1089,6 +1104,7 @@
   padding: 0.85rem 1.25rem;
   border-bottom: 1px solid var(--border-color);
   text-align: left;
+  white-space: nowrap;
 }
 
 .admin-table td {
@@ -1096,6 +1112,9 @@
   border-bottom: 1px solid #f0f0f0;
   color: var(--text-dark);
   vertical-align: middle;
+  overflow-wrap: break-word;
+  word-break: normal;
+  max-width: 300px;
 }
 
 .admin-table tr:hover td {

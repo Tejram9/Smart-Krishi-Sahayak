@@ -86,9 +86,12 @@ public class FarmingAdvisoryServiceImpl implements FarmingAdvisoryService {
         // Season match
         if (cropSeason.contains(season) || season.contains(cropSeason) || cropSeason.contains("perennial") || cropSeason.contains("all season")) {
             score += 25;
-        } else if (cropSeason.contains("kharif") && season.contains("monsoon")) {
+        } else if (cropSeason.contains("kharif") && (season.contains("monsoon") || season.contains("kharif"))) {
             score += 25;
-        } else if (cropSeason.contains("rabi") && season.contains("winter")) {
+        } else if (cropSeason.contains("rabi") && (season.contains("winter") || season.contains("rabi"))) {
+            score += 25;
+        } else if ((season.contains("zaid") || season.contains("summer")) &&
+                   (cropSeason.contains("zaid") || cropSeason.contains("summer") || "Vegetables".equalsIgnoreCase(crop.getCategory()) || cropSeason.contains("perennial"))) {
             score += 25;
         }
 
@@ -109,23 +112,26 @@ public class FarmingAdvisoryServiceImpl implements FarmingAdvisoryService {
         if (requestedSoil.contains("black") && (cropSoil.contains("black") || cropSoil.contains("vertisol") || cropSoil.contains("clay") || cropSoil.contains("heavy"))) {
             return true;
         }
-        if (requestedSoil.contains("loam") && (cropSoil.contains("loam") || cropSoil.contains("alluvial") || cropSoil.contains("well-drained"))) {
+        if (requestedSoil.contains("loam") && (cropSoil.contains("loam") || cropSoil.contains("alluvial") || cropSoil.contains("well-drained") || cropSoil.contains("clay") || cropSoil.contains("sandy"))) {
             return true;
         }
-        if (requestedSoil.contains("sandy") && (cropSoil.contains("sandy") || cropSoil.contains("light") || cropSoil.contains("loam"))) {
+        if (requestedSoil.contains("clay") && (cropSoil.contains("clay") || cropSoil.contains("heavy") || cropSoil.contains("loam") || cropSoil.contains("black"))) {
             return true;
         }
-        if (requestedSoil.contains("red") && (cropSoil.contains("red") || cropSoil.contains("laterite") || cropSoil.contains("loam"))) {
+        if (requestedSoil.contains("sandy") && (cropSoil.contains("sandy") || cropSoil.contains("light") || cropSoil.contains("loam") || cropSoil.contains("well-drained"))) {
+            return true;
+        }
+        if (requestedSoil.contains("red") && (cropSoil.contains("red") || cropSoil.contains("laterite") || cropSoil.contains("loam") || cropSoil.contains("light"))) {
             return true;
         }
         return false;
     }
 
     private boolean isCompatibleWater(String requestedWater, String cropWater) {
-        if (requestedWater.contains("high") && (cropWater.contains("high") || cropWater.contains("medium"))) return true;
-        if (requestedWater.contains("medium") && (cropWater.contains("medium") || cropWater.contains("moderate"))) return true;
-        if (requestedWater.contains("low") && (cropWater.contains("low") || cropWater.contains("drought") || cropWater.contains("rainfed"))) return true;
-        if (requestedWater.contains("rainfed") && (cropWater.contains("rainfed") || cropWater.contains("low") || cropWater.contains("medium"))) return true;
+        if (requestedWater.contains("high")) return true;
+        if (requestedWater.contains("medium") && (cropWater.contains("medium") || cropWater.contains("moderate") || cropWater.contains("low") || cropWater.contains("drought") || cropWater.contains("rainfed"))) return true;
+        if (requestedWater.contains("low") && (cropWater.contains("low") || cropWater.contains("drought") || cropWater.contains("rainfed") || cropWater.contains("medium"))) return true;
+        if (requestedWater.contains("rainfed") && (cropWater.contains("rainfed") || cropWater.contains("low") || cropWater.contains("drought") || cropWater.contains("medium"))) return true;
         return false;
     }
 

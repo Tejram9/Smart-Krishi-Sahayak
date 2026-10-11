@@ -38,14 +38,24 @@ const CropApp = (() => {
   };
 
   /**
-   * Check Authentication status
+   * Check Authentication status and update Navbar
    */
   function checkAuth() {
-    if (!Auth.isAuthenticated()) {
-      window.location.href = 'login.html';
-      return false;
+    const isAuthed = (typeof Auth !== 'undefined' && Auth.isAuthenticated());
+    const loginBtn = document.getElementById('loginNavBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const dashboardLink = document.getElementById('navDashboardLink');
+
+    if (isAuthed) {
+      if (loginBtn) loginBtn.style.display = 'none';
+      if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+      if (dashboardLink) dashboardLink.style.display = 'inline-flex';
+    } else {
+      if (loginBtn) loginBtn.style.display = 'inline-flex';
+      if (logoutBtn) logoutBtn.style.display = 'none';
+      if (dashboardLink) dashboardLink.style.display = 'none';
     }
-    return true;
+    return true; // Allow guest access for crop hub & advisory
   }
 
   /**
@@ -338,20 +348,160 @@ const CropApp = (() => {
       });
     }
 
+    // Tabs & Mode Switching
+    const tabCatBtn = document.getElementById('tabCatalogBtn');
+    if (tabCatBtn) tabCatBtn.addEventListener('click', () => switchMode('catalog'));
+
+    const tabRecBtn = document.getElementById('tabRecommendBtn');
+    if (tabRecBtn) tabRecBtn.addEventListener('click', () => switchMode('recommend'));
+
+    const standaloneForm = document.getElementById('standaloneRecForm');
+    if (standaloneForm) {
+      standaloneForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        runStandaloneRecommendation();
+      });
+    }
+
+    if (window.location.hash === '#recommend' || window.location.hash === '#recommendation') {
+      switchMode('recommend');
+    }
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash === '#recommend' || window.location.hash === '#recommendation') {
+        switchMode('recommend');
+      } else {
+        switchMode('catalog');
+      }
+    });
+
     // Language switcher handler (when i18n changes language)
     document.addEventListener('change', e => {
       if (e.target && e.target.classList.contains('lang-select')) {
         currentLanguage = e.target.value;
         renderCropCards(allCrops);
+        if (hasRunStandaloneRec) {
+          runStandaloneRecommendation();
+        }
       }
     });
+  }
+
+  let hasRunStandaloneRec = false;
+
+  function switchMode(mode) {
+    const catalogSec = document.getElementById('cropCatalogSection');
+    const recSec = document.getElementById('cropRecommendationSection');
+    const tabCat = document.getElementById('tabCatalogBtn');
+    const tabRec = document.getElementById('tabRecommendBtn');
+
+    if (mode === 'recommend') {
+      if (catalogSec) catalogSec.style.display = 'none';
+      if (recSec) recSec.style.display = 'block';
+      if (tabCat) tabCat.classList.remove('active');
+      if (tabRec) tabRec.classList.add('active');
+      if (window.location.hash !== '#recommend') {
+        history.replaceState(null, '', '#recommend');
+      }
+      if (!hasRunStandaloneRec) {
+        runStandaloneRecommendation();
+      }
+    } else {
+      if (catalogSec) catalogSec.style.display = 'block';
+      if (recSec) recSec.style.display = 'none';
+      if (tabCat) tabCat.classList.add('active');
+      if (tabRec) tabRec.classList.remove('active');
+      if (window.location.hash === '#recommend') {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+  }
+
+  async function runStandaloneRecommendation() {
+    hasRunStandaloneRec = true;
+    const season = document.getElementById('standaloneRecSeason')?.value || 'Kharif';
+    const soilType = document.getElementById('standaloneRecSoil')?.value || 'Black Soil';
+    const waterAvailability = document.getElementById('standaloneRecWater')?.value || 'Medium';
+    const district = document.getElementById('standaloneRecDistrict')?.value.trim() || 'Maharashtra';
+
+    const loadingEl = document.getElementById('standaloneRecLoading');
+    const emptyEl = document.getElementById('standaloneRecEmpty');
+    const gridEl = document.getElementById('standaloneRecResultsGrid');
+
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (gridEl) {
+      gridEl.style.display = 'none';
+      gridEl.innerHTML = '';
+    }
+
+    try {
+      const activeLang = (currentLanguage || localStorage.getItem('sks_language') || localStorage.getItem('preferred_language') || 'EN').toUpperCase();
+      const payload = {
+        season,
+        soilType,
+        waterAvailability,
+        district,
+        language: activeLang
+      };
+
+      const res = await Api.post('/api/v1/advisory/recommend-crops', payload);
+      if (loadingEl) loadingEl.style.display = 'none';
+
+      if (res && res.success && res.data) {
+        const crops = res.data;
+        if (!crops || crops.length === 0) {
+          if (emptyEl) emptyEl.style.display = 'block';
+          return;
+        }
+
+        if (gridEl) {
+          gridEl.innerHTML = crops.map(c => `
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="rec-result-card">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                  <div>
+                    <h5 class="fw-bold text-success mb-0">${Utils.escapeHtml(getLocalizedName(c, currentLanguage))}</h5>
+                    <div class="small text-muted">${Utils.escapeHtml(getSecondaryNames(c, currentLanguage))}</div>
+                  </div>
+                  <span class="rec-match-score flex-shrink-0">
+                    <i class="bi bi-patch-check-fill me-1"></i> ${c.matchPercentage}%
+                  </span>
+                </div>
+                <p class="text-dark small flex-grow-1 mb-3">${Utils.escapeHtml(c.recommendationReason)}</p>
+                <div class="bg-light p-2 rounded mb-3 small text-muted">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span><strong>Category:</strong> ${Utils.escapeHtml(c.category)}</span>
+                    <span><strong>Season:</strong> ${Utils.escapeHtml(c.suitableSeason)}</span>
+                  </div>
+                  <div class="text-truncate"><strong>Soil:</strong> ${Utils.escapeHtml(c.soilRequirements || '-')}</div>
+                  <div><strong>Water:</strong> ${Utils.escapeHtml(c.waterRequirement || '-')}</div>
+                </div>
+                <button type="button" class="btn btn-view-crop" onclick="CropApp.openCropModal(${c.cropId})">
+                  <i class="bi bi-book-half"></i> Full Cultivation Details
+                </button>
+              </div>
+            </div>
+          `).join('');
+          gridEl.style.display = 'flex';
+        }
+      } else {
+        if (emptyEl) emptyEl.style.display = 'block';
+      }
+    } catch (err) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (emptyEl) {
+        emptyEl.style.display = 'block';
+        const p = emptyEl.querySelector('p');
+        if (p) p.textContent = err.message || 'Failed to fetch recommendations.';
+      }
+    }
   }
 
   /**
    * Initialization
    */
   function init() {
-    if (!checkAuth()) return;
+    checkAuth();
     initEvents();
     loadCrops();
   }
@@ -359,7 +509,9 @@ const CropApp = (() => {
   return {
     init,
     openCropModal,
-    loadCrops
+    loadCrops,
+    switchMode,
+    runStandaloneRecommendation
   };
 })();
 

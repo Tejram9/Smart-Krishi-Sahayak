@@ -48,7 +48,7 @@ public class AdminInitializer implements CommandLineRunner {
             User admin = new User(
                     "System Admin",
                     adminMobile,
-                    passwordEncoder.encode(adminPassword),
+                    passwordEncoder.encode(effectivePassword),
                     PreferredLanguage.EN,
                     UserRole.ROLE_ADMIN
             );
@@ -56,7 +56,22 @@ public class AdminInitializer implements CommandLineRunner {
                 admin.setEmail(adminEmail);
             }
             userRepository.save(admin);
-            logger.info("Initial admin account created successfully.");
+            logger.info("Initial admin account created successfully with mobile: " + adminMobile);
+        }
+
+        // Also ensure a default demo farmer account exists for immediate testing & demo
+        if (userRepository.findByRole(UserRole.ROLE_FARMER).isEmpty()) {
+            logger.info("No farmer accounts found. Seeding initial demo farmer account...");
+            User demoFarmer = new User(
+                    "Rameshwar Patil (बळीराजा)",
+                    "9876543210",
+                    passwordEncoder.encode("Farmer@123"),
+                    PreferredLanguage.MR,
+                    UserRole.ROLE_FARMER
+            );
+            demoFarmer.setEmail("farmer.demo@smartkrishi.gov.in");
+            userRepository.save(demoFarmer);
+            logger.info("Default demo farmer account created (Mobile: 9876543210 / Password: Farmer@123).");
         }
     }
 }

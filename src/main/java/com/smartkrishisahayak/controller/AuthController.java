@@ -39,6 +39,12 @@ public class AuthController {
         return new ResponseEntity<>(ApiResponse.success("Farmer account registered successfully.", authResponse), HttpStatus.CREATED);
     }
 
+    @PostMapping("/register-admin")
+    public ResponseEntity<ApiResponse<AuthResponse>> registerAdmin(@Valid @RequestBody com.smartkrishisahayak.dto.request.AdminRegisterRequest registerRequest) {
+        AuthResponse authResponse = authService.registerAdmin(registerRequest);
+        return new ResponseEntity<>(ApiResponse.success("Administrator account registered successfully.", authResponse), HttpStatus.CREATED);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         AuthResponse authResponse = authService.login(loginRequest, request);
