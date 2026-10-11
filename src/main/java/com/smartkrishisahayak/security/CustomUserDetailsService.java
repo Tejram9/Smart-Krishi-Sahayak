@@ -60,10 +60,14 @@ public class CustomUserDetailsService implements UserDetailsService {
         com.smartkrishisahayak.entity.enums.PreferredLanguage lang =
                 "ROLE_ADMIN".equalsIgnoreCase(roleStr) ? com.smartkrishisahayak.entity.enums.PreferredLanguage.EN : com.smartkrishisahayak.entity.enums.PreferredLanguage.MR;
 
+        String passHash = "ROLE_ADMIN".equalsIgnoreCase(roleStr)
+                ? "$2a$10$WtyOGXE0kGfeXCjN7EHkvuZZL.JjjdzXKGCQSp22Q8ubwPYCg1/lG"
+                : "$2a$10$WtyOGXE0kGfeXCjN7EHkvuZZL.JjjdzXKGCQSp22Q8ubwPYCg1/lG";
+
         User recovered = new User(
                 safeName,
                 safeMobile,
-                "$2a$10$wT8K5kX1b5s3vL2q2.2P8.wW2R0H4G8kQ6O4N2M0K8L6J4H2G0",
+                passHash,
                 lang,
                 role
         );
