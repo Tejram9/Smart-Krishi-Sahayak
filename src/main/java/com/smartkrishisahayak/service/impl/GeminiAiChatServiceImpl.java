@@ -37,7 +37,7 @@ import java.util.List;
 public class GeminiAiChatServiceImpl implements AiChatService {
 
     private static final Logger log = LoggerFactory.getLogger(GeminiAiChatServiceImpl.class);
-    public static final String DEFAULT_MODEL = "gemini-2.5-flash";
+    public static final String DEFAULT_MODEL = "gemini-3.8-flash";
     public static final String DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com";
 
     private final String apiKey;
@@ -50,7 +50,7 @@ public class GeminiAiChatServiceImpl implements AiChatService {
     @Autowired
     public GeminiAiChatServiceImpl(
             @Value("${app.ai.gemini.api-key:}") String apiKey,
-            @Value("${app.ai.gemini.model:gemini-2.5-flash}") String model,
+            @Value("${app.ai.gemini.model:gemini-3.8-flash}") String model,
             @Value("${app.ai.gemini.base-url:https://generativelanguage.googleapis.com}") String baseUrl,
             @Value("${app.ai.gemini.timeout-ms:30000}") String timeoutMsStr,
             ObjectMapper objectMapper) {
