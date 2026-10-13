@@ -72,7 +72,7 @@ public class GeminiAiChatServiceImpl implements AiChatService {
         this.apiKey = apiKey != null ? apiKey.trim() : "";
         this.model = normalizeModelName(model);
         this.baseUrl = normalizeBaseUrl(baseUrl);
-        this.timeoutMs = timeoutMs > 0 ? timeoutMs : 30000;
+        this.timeoutMs = timeoutMs > 0 ? timeoutMs : 20000;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
 
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
