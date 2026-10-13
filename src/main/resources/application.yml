@@ -1,5 +1,8 @@
 server:
   port: ${PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: never
   servlet:
     encoding:
       charset: UTF-8
@@ -26,7 +29,7 @@ spring:
     database-platform: ${JPA_DATABASE_PLATFORM:org.hibernate.dialect.MySQLDialect}
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
-    show-sql: ${JPA_SHOW_SQL:true}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: true
@@ -53,6 +56,9 @@ app:
     mobile: ${APP_ADMIN_MOBILE:${ADMIN_MOBILE:9999999999}}
     email: ${APP_ADMIN_EMAIL:${ADMIN_EMAIL:admin@smartkrishi.gov.in}}
     password: ${APP_ADMIN_PASSWORD:${ADMIN_PASSWORD:Admin@SecurePass2026}}
+    registration-secret: ${APP_ADMIN_REGISTRATION_SECRET:${ADMIN_REGISTRATION_SECRET:KisanAdmin@2026}}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://smart-krishi-sahayak-86ks.vercel.app,http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,http://127.0.0.1:3000}
   jwt:
     secret: ${JWT_SECRET:c7b5a8e2d4f10938b65e21a4f0739c68c7b5a8e2d4f10938b65e21a4f0739c68}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
@@ -60,9 +66,9 @@ app:
     provider: ${AI_PROVIDER:gemini}
     gemini:
       api-key: ${GEMINI_API_KEY:}
-      model: ${GEMINI_MODEL:gemini-3.5-flash}
+      model: ${GEMINI_MODEL:gemini-flash-lite-latest}
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
-      timeout-ms: ${GEMINI_TIMEOUT_MS:30000}
+      timeout-ms: ${GEMINI_TIMEOUT_MS:20000}
   weather:
     provider: ${WEATHER_PROVIDER:open-meteo}
     api-key: ${WEATHER_API_KEY:}

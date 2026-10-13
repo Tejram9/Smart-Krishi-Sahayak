@@ -213,7 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const portalName = response.data.role === 'ROLE_ADMIN' ? 'Admin Dashboard' : 'Farmer Dashboard';
           showAlert(`✓ Authentication successful! Loading ${portalName}...`, 'success');
           setTimeout(() => {
-            Auth.redirectByRole(response.data.role);
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get('redirect');
+            if (redirect && !redirect.startsWith('http://') && !redirect.startsWith('https://') && !redirect.startsWith('//')) {
+              window.location.href = redirect;
+            } else {
+              Auth.redirectByRole(response.data.role);
+            }
           }, 600);
         } else {
           showAlert(response?.message || 'Login failed. Please check credentials.', 'danger');

@@ -70,7 +70,7 @@ public class ReportServiceImpl implements ReportService {
                 .orElseThrow(() -> new ResourceNotFoundException("Report", "id", reportId));
 
         if (!isAdmin && (currentUserId == null || !report.getUser().getId().equals(currentUserId))) {
-            throw new BadRequestException("Access denied: You do not have permission to view this report.");
+            throw new org.springframework.security.access.AccessDeniedException("You do not have permission to view this report.");
         }
 
         return mapToResponse(report);

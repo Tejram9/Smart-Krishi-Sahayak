@@ -48,7 +48,9 @@ public class ReportController {
     public ResponseEntity<ApiResponse<UserReportResponse>> getReportById(
             @PathVariable Long id,
             @AuthenticationPrincipal UserPrincipal principal) {
-        UserReportResponse response = reportService.getReportById(id, principal.getId(), false);
+        boolean isAdmin = principal != null && principal.getAuthorities() != null &&
+                principal.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        UserReportResponse response = reportService.getReportById(id, principal != null ? principal.getId() : null, isAdmin);
         return ResponseEntity.ok(ApiResponse.success("Report fetched successfully.", response));
     }
 

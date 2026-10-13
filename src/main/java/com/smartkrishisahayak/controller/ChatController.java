@@ -49,12 +49,12 @@ public class ChatController {
     }
 
     /**
-     * Send a message to an existing session. Returns both the saved user
-     * message and the AI-generated response.
+     * Send a message to an existing session or auto-provisioned session.
+     * Returns both the saved user message and the AI-generated response.
      */
-    @PostMapping("/sessions/{sessionId}/messages")
+    @PostMapping({"/sessions/{sessionId}/messages", "/messages", "/send"})
     public ResponseEntity<ApiResponse<ChatResponse>> sendMessage(
-            @PathVariable Long sessionId,
+            @PathVariable(required = false) Long sessionId,
             @Valid @RequestBody ChatMessageRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         ChatResponse response = chatService.sendMessage(sessionId, request, principal);

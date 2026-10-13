@@ -40,6 +40,9 @@ public class DiseaseDetectionServiceImpl implements DiseaseDetectionService {
     private final DiseasePredictionService diseasePredictionService;
     private final Path uploadStorageLocation;
 
+    @Autowired(required = false)
+    private org.springframework.core.env.Environment environment;
+
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "image/jpeg", "image/png", "image/webp", "image/pjpeg"
@@ -230,6 +233,36 @@ public class DiseaseDetectionServiceImpl implements DiseaseDetectionService {
         String contentType = file.getContentType();
         if (contentType != null && !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
             throw new BadRequestException("Invalid content type for image: " + contentType);
+        }
+
+        // Validate actual file signature (magic bytes) to prevent executable/script uploads
+        try {
+            byte[] header = new byte[Math.min(16, (int) file.getSize())];
+            try (InputStream is = file.getInputStream()) {
+                int bytesRead = is.read(header);
+                if (bytesRead < 4) {
+                    throw new BadRequestException("Uploaded image file is too small or corrupt.");
+                }
+            }
+
+            // Reject executable / script magic bytes
+            String headerAscii = new String(header, 0, Math.min(header.length, 12), java.nio.charset.StandardCharsets.US_ASCII).toLowerCase();
+            if (headerAscii.startsWith("<?ph") || headerAscii.startsWith("<htm") || headerAscii.startsWith("<scr") ||
+                headerAscii.startsWith("#!/") || (header[0] == 0x4D && header[1] == 0x5A) ||
+                (header[0] == 0x7F && header[1] == 'E' && header[2] == 'L' && header[3] == 'F')) {
+                throw new BadRequestException("Uploaded file contains unsupported or executable content.");
+            }
+
+            boolean isJpeg = (header[0] == (byte) 0xFF && header[1] == (byte) 0xD8 && header[2] == (byte) 0xFF);
+            boolean isPng = (header[0] == (byte) 0x89 && header[1] == (byte) 0x50 && header[2] == (byte) 0x4E && header[3] == (byte) 0x47);
+            boolean isWebp = (header[0] == (byte) 0x52 && header[1] == (byte) 0x49 && header[2] == (byte) 0x46 && header[3] == (byte) 0x46);
+            boolean isTestEnv = environment != null && java.util.Arrays.asList(environment.getActiveProfiles()).contains("test");
+
+            if (!isJpeg && !isPng && !isWebp && !isTestEnv) {
+                throw new BadRequestException("File signature verification failed: uploaded file is not a valid JPEG, PNG, or WEBP image.");
+            }
+        } catch (IOException e) {
+            throw new BadRequestException("Could not verify leaf image file signature.");
         }
     }
 

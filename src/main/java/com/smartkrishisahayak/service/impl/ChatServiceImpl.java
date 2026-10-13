@@ -107,15 +107,33 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional
     public ChatResponse sendMessage(Long sessionId, ChatMessageRequest request, UserPrincipal principal) {
-        log.debug("User ID={} sending message to session ID={}", principal.getId(), sessionId);
+        User user = resolveUser(principal);
+        log.debug("User ID={} sending message (requested session ID={})", user.getId(), sessionId);
 
-        ChatSession session = chatSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("ChatSession", "id", sessionId));
+        ChatSession session;
+        if (sessionId != null && sessionId > 0) {
+            session = chatSessionRepository.findById(sessionId)
+                    .orElseThrow(() -> new ResourceNotFoundException("ChatSession", "id", sessionId));
 
-        if (!session.getUser().getId().equals(principal.getId())) {
-            log.warn("Access denied: user ID={} attempted to access session ID={} owned by user ID={}",
-                    principal.getId(), sessionId, session.getUser().getId());
-            throw new AccessDeniedException("You do not have permission to access this chat session.");
+            boolean isOwner = session.getUser().getId().equals(user.getId())
+                    || (user.getMobileNumber() != null && user.getMobileNumber().equals(session.getUser().getMobileNumber()));
+            if (!isOwner) {
+                log.warn("Access denied: user ID={} attempted to access session ID={} owned by user ID={}",
+                        user.getId(), sessionId, session.getUser().getId());
+                throw new AccessDeniedException("You do not have permission to access this chat session.");
+            }
+        } else {
+            // Direct send: find user's latest session or auto-create a resilient session
+            List<ChatSession> userSessions = chatSessionRepository.findByUserIdOrderByUpdatedAtDesc(user.getId());
+            if (!userSessions.isEmpty()) {
+                session = userSessions.get(0);
+            } else {
+                PreferredLanguage defaultLang = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : PreferredLanguage.MR;
+                String defaultTitle = "Chat Session - " + LocalDateTime.now().format(SESSION_TITLE_FORMATTER);
+                session = new ChatSession(user, defaultTitle, defaultLang);
+                session = chatSessionRepository.save(session);
+                log.info("Auto-created resilient chat session ID={} for user ID={}", session.getId(), user.getId());
+            }
         }
 
         PreferredLanguage language = parseLanguage(request.getLanguage());
@@ -161,7 +179,7 @@ public class ChatServiceImpl implements ChatService {
         ChatMessage aiMessage = new ChatMessage(session, MessageSender.AI, aiText, language);
         ChatMessage savedAiMessage = chatMessageRepository.save(aiMessage);
 
-        return new ChatResponse(sessionId,
+        return new ChatResponse(session.getId(),
                 mapToMessageResponse(savedUserMessage),
                 mapToMessageResponse(savedAiMessage));
     }
@@ -169,8 +187,9 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional(readOnly = true)
     public List<ChatSessionResponse> getUserSessions(UserPrincipal principal) {
-        log.debug("Fetching sessions for user ID={}", principal.getId());
-        return chatSessionRepository.findByUserIdOrderByUpdatedAtDesc(principal.getId())
+        User user = resolveUser(principal);
+        log.debug("Fetching sessions for user ID={}", user.getId());
+        return chatSessionRepository.findByUserIdOrderByUpdatedAtDesc(user.getId())
                 .stream()
                 .map(this::mapToSessionResponse)
                 .collect(Collectors.toList());
@@ -179,13 +198,16 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional(readOnly = true)
     public List<ChatMessageResponse> getSessionMessages(Long sessionId, UserPrincipal principal) {
-        log.debug("Fetching messages for session ID={}, user ID={}", sessionId, principal.getId());
+        User user = resolveUser(principal);
+        log.debug("Fetching messages for session ID={}, user ID={}", sessionId, user.getId());
         ChatSession session = chatSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("ChatSession", "id", sessionId));
 
-        if (!session.getUser().getId().equals(principal.getId())) {
+        boolean isOwner = session.getUser().getId().equals(user.getId())
+                || (user.getMobileNumber() != null && user.getMobileNumber().equals(session.getUser().getMobileNumber()));
+        if (!isOwner) {
             log.warn("Access denied: user ID={} attempted to read messages from session ID={}",
-                    principal.getId(), sessionId);
+                    user.getId(), sessionId);
             throw new AccessDeniedException("You do not have permission to access this chat session.");
         }
 

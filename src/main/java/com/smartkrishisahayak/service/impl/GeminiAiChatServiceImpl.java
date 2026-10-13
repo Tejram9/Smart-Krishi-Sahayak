@@ -37,9 +37,14 @@ import java.util.List;
 public class GeminiAiChatServiceImpl implements AiChatService {
 
     private static final Logger log = LoggerFactory.getLogger(GeminiAiChatServiceImpl.class);
-    public static final String DEFAULT_MODEL = "gemini-3.5-flash";
+    public static final String DEFAULT_MODEL = "gemini-flash-lite-latest";
     public static final String DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com";
-    private static final List<String> FALLBACK_MODELS = List.of("gemini-3.5-flash", "gemini-flash-latest", "gemini-3.8-flash");
+    private static final List<String> FALLBACK_MODELS = List.of(
+            "gemini-flash-lite-latest",
+            "gemini-3.5-flash-lite",
+            "gemini-flash-latest",
+            "gemini-3.8-flash"
+    );
 
     private final String apiKey;
     private final String model;
@@ -51,11 +56,11 @@ public class GeminiAiChatServiceImpl implements AiChatService {
     @Autowired
     public GeminiAiChatServiceImpl(
             @Value("${app.ai.gemini.api-key:}") String apiKey,
-            @Value("${app.ai.gemini.model:gemini-3.5-flash}") String model,
+            @Value("${app.ai.gemini.model:gemini-flash-lite-latest}") String model,
             @Value("${app.ai.gemini.base-url:https://generativelanguage.googleapis.com}") String baseUrl,
-            @Value("${app.ai.gemini.timeout-ms:30000}") String timeoutMsStr,
+            @Value("${app.ai.gemini.timeout-ms:20000}") String timeoutMsStr,
             ObjectMapper objectMapper) {
-        this(apiKey, model, baseUrl, parseTimeout(timeoutMsStr, 30000), objectMapper);
+        this(apiKey, model, baseUrl, parseTimeout(timeoutMsStr, 20000), objectMapper);
     }
 
     public GeminiAiChatServiceImpl(
@@ -196,12 +201,14 @@ public class GeminiAiChatServiceImpl implements AiChatService {
                     continue;
                 }
 
+                if (statusVal == 403) {
+                    log.error("Gemini request failed: HTTP 403. Details: {}", sanitizedDetails);
+                    throw new AiServiceException("AI service error (403): Invalid or unauthorized Gemini API key.");
+                }
+
                 if (statusVal == 404) {
                     log.error("Gemini request failed: HTTP 404. Model: {}, Endpoint: {}, Details: {}", currentModel, endpointUrl, sanitizedDetails);
                     throw new AiServiceException("AI service error (404): Configured Gemini model (" + currentModel + ") was not found or is unavailable at endpoint: " + endpointUrl + (sanitizedDetails.isEmpty() ? "" : ". Details: " + sanitizedDetails));
-                } else if (statusVal == 403) {
-                    log.error("Gemini request failed: HTTP 403. Details: {}", sanitizedDetails);
-                    throw new AiServiceException("AI service error (403): Invalid or unauthorized Gemini API key.");
                 } else if (statusVal == 429) {
                     log.error("Gemini request failed: HTTP 429. Details: {}", sanitizedDetails);
                     throw new AiServiceException("AI service error (429): Rate limit or API quota exceeded. Please wait a moment and try again.");
@@ -217,13 +224,22 @@ public class GeminiAiChatServiceImpl implements AiChatService {
                 }
 
             } catch (ResourceAccessException ex) {
-                log.error("Gemini API network/timeout error: {}", ex.getMessage());
+                log.warn("Gemini model {} network/timeout error: {}. Candidates left: {}",
+                        currentModel, ex.getMessage(), (modelsToTry.size() - 1 - i));
+                if (i < modelsToTry.size() - 1) {
+                    log.info("Failing over to next Gemini candidate model: {}", modelsToTry.get(i + 1));
+                    continue;
+                }
                 throw new AiServiceException("AI service request timed out or network connection failed. Please try again.");
 
             } catch (AiServiceException ex) {
                 throw ex;
             } catch (Exception ex) {
-                log.error("Unexpected error invoking Gemini API: {}", ex.getMessage());
+                log.warn("Unexpected error invoking Gemini model {}: {}", currentModel, ex.getMessage());
+                if (i < modelsToTry.size() - 1) {
+                    log.info("Retrying with next model: {}", modelsToTry.get(i + 1));
+                    continue;
+                }
                 throw new AiServiceException("Failed to generate AI response: " + ex.getMessage());
             }
         }

@@ -32,6 +32,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final com.smartkrishisahayak.service.UserActivityService userActivityService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.admin.registration-secret:KisanAdmin@2026}")
+    private String adminRegistrationSecret;
+
     @Autowired
     public AuthServiceImpl(
             UserRepository userRepository,
@@ -114,11 +117,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse registerAdmin(com.smartkrishisahayak.dto.request.AdminRegisterRequest adminRegisterRequest) {
-        // Validate secret key
-        String expectedKey = "KisanAdmin@2026";
+        // Validate secret key with constant-time equality check
+        String expectedKey = adminRegistrationSecret != null ? adminRegistrationSecret.trim() : "";
         String providedKey = adminRegisterRequest.getAdminSecretKey() != null ? adminRegisterRequest.getAdminSecretKey().trim() : "";
-        if (!expectedKey.equalsIgnoreCase(providedKey) && !"Admin@SecurePass2026".equals(providedKey)) {
-            throw new BadRequestException("Invalid Administrator Secret Key. Please enter the authorized secret key (default: KisanAdmin@2026).");
+        
+        boolean matchesExpected = !expectedKey.isEmpty() && java.security.MessageDigest.isEqual(
+                expectedKey.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                providedKey.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        );
+
+        if (!matchesExpected) {
+            throw new BadRequestException("Invalid Administrator Secret Key. Please provide the authorized administrative registration key.");
         }
 
         // Validate duplicate mobile number

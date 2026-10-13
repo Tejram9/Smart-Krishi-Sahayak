@@ -16,6 +16,7 @@ app:
     mobile: "9999999999"
     email: "admin@smartkrishi.gov.in"
     password: "Admin@SecurePass2026"
+    registration-secret: "KisanAdmin@2026"
   jwt:
     secret: c7b5a8e2d4f10938b65e21a4f0739c68c7b5a8e2d4f10938b65e21a4f0739c68
     expiration-ms: 86400000

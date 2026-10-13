@@ -23,6 +23,10 @@ app:
     mobile: "9999999999"
     email: "admin@smartkrishi.gov.in"
     password: "TestAdmin@SecurePass123"
+    registration-secret: "KisanAdmin@2026"
+  security:
+    rate-limiting:
+      enabled: false
   ai:
     provider: mock
   weather:

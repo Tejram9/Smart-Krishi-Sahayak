@@ -13,26 +13,56 @@ const Api = (() => {
    *    - If running on port 8080 (served directly by Spring Boot), uses relative path ''.
    * 5. Default: '' (relative URL, ideal for same-origin or Vercel rewrites)
    */
+  const ALLOWED_BACKEND_HOSTS = new Set([
+    'localhost',
+    '127.0.0.1',
+    'smart-krishi-sahayak-86ks.vercel.app',
+    'smart-krishi-backend.onrender.com'
+  ]);
+
+  function isSafeApiOrigin(candidateUrl) {
+    if (!candidateUrl) return false;
+    try {
+      const parsed = new URL(candidateUrl, window.location.origin);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+      const host = parsed.hostname.toLowerCase();
+      if (host === window.location.hostname.toLowerCase()) return true;
+      return ALLOWED_BACKEND_HOSTS.has(host) || host.endsWith('.vercel.app');
+    } catch (e) {
+      return false;
+    }
+  }
+
   function getBaseUrl() {
     if (typeof window !== 'undefined' && window.location) {
-      // 1. Check URL query parameter override (?apiUrl=...)
+      // 1. Check URL query parameter override (?apiUrl=...) with strict origin validation
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const queryApiUrl = urlParams.get('apiUrl') || urlParams.get('api_url');
         if (queryApiUrl) {
           const sanitized = queryApiUrl.trim().replace(/\/+$/, '');
-          localStorage.setItem('sks_api_base_url', sanitized);
-          return sanitized;
+          if (isSafeApiOrigin(sanitized)) {
+            localStorage.setItem('sks_api_base_url', sanitized);
+            return sanitized;
+          } else {
+            console.warn('Rejected untrusted API Base URL from query parameter:', queryApiUrl);
+            localStorage.removeItem('sks_api_base_url');
+          }
         }
       } catch (e) {
         // Silently ignore URL parameter extraction error
       }
 
-      // 2. Check localStorage override
+      // 2. Check localStorage override with strict origin validation
       try {
         const stored = localStorage.getItem('sks_api_base_url');
         if (stored && stored.trim() !== '') {
-          return stored.trim().replace(/\/+$/, '');
+          const sanitized = stored.trim().replace(/\/+$/, '');
+          if (isSafeApiOrigin(sanitized)) {
+            return sanitized;
+          } else {
+            localStorage.removeItem('sks_api_base_url');
+          }
         }
       } catch (e) {
         // Silently ignore localStorage access error
@@ -42,7 +72,10 @@ const Api = (() => {
       if (typeof window.APP_CONFIG !== 'undefined' &&
           typeof window.APP_CONFIG.API_BASE_URL === 'string' &&
           window.APP_CONFIG.API_BASE_URL.trim() !== '') {
-        return window.APP_CONFIG.API_BASE_URL.trim().replace(/\/+$/, '');
+        const configUrl = window.APP_CONFIG.API_BASE_URL.trim().replace(/\/+$/, '');
+        if (isSafeApiOrigin(configUrl)) {
+          return configUrl;
+        }
       }
 
       // 4. Local development environment heuristic

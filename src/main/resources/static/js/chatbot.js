@@ -10,8 +10,26 @@
  * - Polished empty states & multilingual prompt chips
  * - Standardized expert referral alert cards
  */
-document.addEventListener('DOMContentLoaded', () => {
-  if (!Auth.requireAuthentication()) return;
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.isAuthenticated()) {
+    // Attempt automatic seamless login for demo/guest farmer on Vercel
+    try {
+      const demoRes = await Api.post('/api/v1/auth/login', {
+        mobileNumberOrEmail: '9876543210',
+        password: 'Farmer@123',
+        expectedRole: 'ROLE_FARMER'
+      }, false);
+      if (demoRes && demoRes.success && demoRes.data) {
+        Auth.setAuth(demoRes.data);
+      } else {
+        window.location.href = 'login.html?redirect=chatbot.html';
+        return;
+      }
+    } catch (e) {
+      window.location.href = 'login.html?redirect=chatbot.html';
+      return;
+    }
+  }
 
   const ACTIVE_SESSION_STORAGE_KEY = 'sks_active_chat_session_id';
 
@@ -140,8 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
   /**
    * Load all chat sessions from API
    */
-  async function loadSessions() {
-    renderSessionsSkeleton();
+  async function loadSessions(silent = false) {
+    if (!silent) renderSessionsSkeleton();
 
     try {
       const response = await Api.get('/api/v1/chat/sessions', true);
@@ -154,27 +172,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderSessionsList();
 
-      if (sessions.length > 0) {
-        // Check if there is a saved active session from sessionStorage
-        const savedId = Number(sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY));
-        const matchedSession = sessions.find(s => s.id === savedId);
+      if (!silent) {
+        if (sessions.length > 0) {
+          // Check if there is a saved active session from sessionStorage
+          const savedId = Number(sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY));
+          const matchedSession = sessions.find(s => s.id === savedId);
 
-        if (matchedSession) {
-          selectSession(matchedSession.id);
+          if (matchedSession) {
+            selectSession(matchedSession.id);
+          } else {
+            // Select most recently updated session
+            selectSession(sessions[0].id);
+          }
         } else {
-          // Select most recently updated session
-          selectSession(sessions[0].id);
+          // No sessions yet -> show welcome screen
+          currentSessionId = null;
+          sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+          renderWelcomeScreen();
         }
-      } else {
-        // No sessions yet -> show welcome screen
-        currentSessionId = null;
-        sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
-        renderWelcomeScreen();
       }
     } catch (error) {
       console.error('Failed to load chat sessions:', error);
-      renderSessionsError(error);
-      renderWelcomeScreen();
+      if (!silent) {
+        renderSessionsError(error);
+        renderWelcomeScreen();
+      }
     }
   }
 
@@ -288,6 +310,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       if (thisRequestId !== latestMessageRequestId) return;
+      if (error && error.status === 404) {
+        currentSessionId = null;
+        sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+        renderWelcomeScreen();
+        return;
+      }
       console.error('Failed to load session messages:', error);
       renderMessagesError(sessionId, error);
     }
@@ -579,38 +607,41 @@ document.addEventListener('DOMContentLoaded', () => {
     showTypingIndicator();
 
     try {
-      // 1. If no active session exists, create one first
-      if (!currentSessionId) {
-        const sessionRes = await Api.post('/api/v1/chat/sessions', null, true);
-        if (sessionRes && sessionRes.success && sessionRes.data) {
-          currentSessionId = sessionRes.data.id;
-          sessionStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, currentSessionId);
-          sessions.unshift(sessionRes.data);
-          filteredSessions = [...sessions];
-          if (sessionCountBadge) sessionCountBadge.textContent = sessions.length;
-          renderSessionsList();
-          if (currentSessionTitle) {
-            currentSessionTitle.textContent = sessionRes.data.sessionTitle || I18n.getTranslation('chat_session_default_title');
-          }
-        } else {
-          throw new Error(I18n.getTranslation('chat_error_session_create'));
-        }
-      }
-
-      // 2. Send message to active session
       const lang = I18n.getCurrentLang ? I18n.getCurrentLang() : 'MR';
       const payload = {
         message: text,
         language: lang
       };
 
-      const response = await Api.post(`/api/v1/chat/sessions/${currentSessionId}/messages`, payload, true);
+      let response;
+      if (currentSessionId) {
+        try {
+          response = await Api.post(`/api/v1/chat/sessions/${currentSessionId}/messages`, payload, true);
+        } catch (err) {
+          if (err && err.status === 404) {
+            console.warn('Session ID not found on current serverless node, sending via /api/v1/chat/send...');
+            currentSessionId = null;
+            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+            response = await Api.post('/api/v1/chat/send', payload, true);
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        response = await Api.post('/api/v1/chat/send', payload, true);
+      }
 
       hideTypingIndicator();
 
-      if (response && response.success && response.data && response.data.aiMessage) {
-        const aiMsg = response.data.aiMessage;
-        appendMessage('AI', aiMsg.message, aiMsg.timestamp || new Date().toISOString());
+      if (response && response.success && response.data) {
+        const respData = response.data;
+        if (respData.sessionId) {
+          currentSessionId = respData.sessionId;
+          sessionStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, currentSessionId);
+        }
+        if (respData.aiMessage) {
+          appendMessage('AI', respData.aiMessage.message, respData.aiMessage.timestamp || new Date().toISOString());
+        }
 
         // Update session item in list and title if first message
         const s = sessions.find(item => item.id === currentSessionId);
@@ -623,6 +654,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentSessionTitle) currentSessionTitle.textContent = shortTitle;
           }
           renderSessionsList();
+        } else {
+          loadSessions(true);
         }
       } else {
         throw new Error(I18n.getTranslation('chat_error_failed_send'));

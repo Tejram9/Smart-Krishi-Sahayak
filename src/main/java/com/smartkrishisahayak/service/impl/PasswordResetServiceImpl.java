@@ -83,18 +83,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             }
         }
 
-        // In development/test or if external mail is not configured, output OTP directly to logs for testing
-        log.info("===============================================================================");
-        log.info(">>> PASSWORD RESET OTP GENERATED <<<");
-        log.info("Target User: {} (ID: {})", user.getFullName(), user.getId());
-        log.info("Identifier: {}", identifier);
-        if (isProd) {
-            log.info("SECURE RESET OTP: >>> [PROTECTED IN PRODUCTION - SENT VIA SMS/EMAIL] <<<");
-        } else {
-            log.info("SECURE RESET OTP: >>> {} <<<", otpToken);
-        }
-        log.info("Valid for: {} minutes (Expires at: {})", OTP_EXPIRY_MINUTES, expiry);
-        log.info("===============================================================================");
+        log.info("Password reset token generated for user ID={}, valid for {} minutes (expires at: {})",
+                user.getId(), OTP_EXPIRY_MINUTES, expiry);
     }
 
     @Override
