@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (secondsRemaining <= 0) {
       clearInterval(intervalId);
-      window.location.href = 'login.html?logged_out=true';
+      window.location.href = '/login.html?logged_out=true';
     }
   }, 1000);
 

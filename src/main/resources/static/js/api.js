@@ -128,16 +128,29 @@ const Api = (() => {
       config.body = JSON.stringify(data);
     }
 
+    let controller = null;
+    let timeoutId = null;
+    if (typeof AbortController !== 'undefined') {
+      controller = new AbortController();
+      config.signal = controller.signal;
+      timeoutId = setTimeout(() => controller.abort(), 15000);
+    }
+
     try {
       const response = await fetch(url, config);
+      if (timeoutId) clearTimeout(timeoutId);
+
       const isJson = response.headers.get('content-type')?.includes('application/json');
       const responseData = isJson ? await response.json() : null;
 
       if (!response.ok) {
         if (response.status === 401) {
           Auth.clearAuth();
-          if (!window.location.pathname.endsWith('login.html') && !window.location.pathname.endsWith('register.html')) {
-            window.location.href = 'login.html?expired=true';
+          const currentPath = window.location.pathname || '';
+          if (!currentPath.endsWith('login.html') &&
+              !currentPath.endsWith('register.html') &&
+              !currentPath.endsWith('logout.html')) {
+            window.location.href = '/login.html?expired=true';
           }
         }
         
@@ -153,6 +166,12 @@ const Api = (() => {
 
       return responseData;
     } catch (error) {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        const timeoutError = new Error('The request timed out. The server might be waking up or experiencing high latency. Please retry in a moment.');
+        timeoutError.status = 408;
+        throw timeoutError;
+      }
       if (!error.status) {
         error.message = error.message || 'Unable to connect to the server. Please check your connection.';
       }

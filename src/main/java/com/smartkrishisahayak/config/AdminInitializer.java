@@ -39,24 +39,32 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        String effectivePassword = (adminPassword != null && !adminPassword.trim().isEmpty()) ? adminPassword.trim() : "Admin@SecurePass2026";
+        if (effectivePassword.length() < 12) {
+            effectivePassword = "Admin@SecurePass2026";
+        }
+        String effectiveEmail = (adminEmail != null && !adminEmail.trim().isEmpty()) ? adminEmail.trim() : "admin@smartkrishi.gov.in";
+        String effectiveMobile = (adminMobile != null && !adminMobile.trim().isEmpty()) ? adminMobile.trim() : "9999999999";
+
         if (userRepository.findByRole(UserRole.ROLE_ADMIN).isEmpty()) {
-            String effectivePassword = (adminPassword != null && !adminPassword.trim().isEmpty()) ? adminPassword.trim() : "Admin@SecurePass2026";
-            if (effectivePassword.length() < 12) {
-                effectivePassword = "Admin@SecurePass2026";
-            }
             logger.info("No admin account found. Creating initial system administrator account...");
             User admin = new User(
                     "System Admin",
-                    adminMobile,
+                    effectiveMobile,
                     passwordEncoder.encode(effectivePassword),
                     PreferredLanguage.EN,
                     UserRole.ROLE_ADMIN
             );
-            if (adminEmail != null && !adminEmail.trim().isEmpty()) {
-                admin.setEmail(adminEmail);
-            }
+            admin.setEmail(effectiveEmail);
             userRepository.save(admin);
-            logger.info("Initial admin account created successfully with mobile: " + adminMobile);
+            logger.info("Initial admin account created successfully with mobile: " + effectiveMobile + " and email: " + effectiveEmail);
+        } else {
+            userRepository.findByRole(UserRole.ROLE_ADMIN).forEach(admin -> {
+                if (admin.getEmail() == null || admin.getEmail().trim().isEmpty()) {
+                    admin.setEmail(effectiveEmail);
+                    userRepository.save(admin);
+                }
+            });
         }
 
         // Also ensure a default demo farmer account exists for immediate testing & demo

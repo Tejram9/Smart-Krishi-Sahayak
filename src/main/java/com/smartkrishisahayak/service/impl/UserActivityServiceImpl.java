@@ -55,15 +55,23 @@ public class UserActivityServiceImpl implements UserActivityService {
             }
         }
 
+        if (ipAddress != null && ipAddress.length() > 45) {
+            ipAddress = ipAddress.substring(0, 45);
+        }
+
         // Close any lingering active sessions for this user older than expiration
-        Optional<UserLoginActivity> existingActive = activityRepository
-                .findTopByUserIdAndStatusOrderByLoginTimeDesc(user.getId(), SessionStatus.ACTIVE);
-        if (existingActive.isPresent()) {
-            UserLoginActivity prev = existingActive.get();
-            if (prev.getLoginTime().isBefore(LocalDateTime.now().minusHours(SESSION_EXPIRY_HOURS))) {
-                prev.setStatus(SessionStatus.EXPIRED);
-                activityRepository.save(prev);
+        try {
+            Optional<UserLoginActivity> existingActive = activityRepository
+                    .findTopByUserIdAndStatusOrderByLoginTimeDesc(user.getId(), SessionStatus.ACTIVE);
+            if (existingActive.isPresent()) {
+                UserLoginActivity prev = existingActive.get();
+                if (prev.getLoginTime().isBefore(LocalDateTime.now().minusHours(SESSION_EXPIRY_HOURS))) {
+                    prev.setStatus(SessionStatus.EXPIRED);
+                    activityRepository.save(prev);
+                }
             }
+        } catch (Exception ex) {
+            log.warn("Could not check/expire previous active sessions: {}", ex.getMessage());
         }
 
         UserLoginActivity activity = new UserLoginActivity(

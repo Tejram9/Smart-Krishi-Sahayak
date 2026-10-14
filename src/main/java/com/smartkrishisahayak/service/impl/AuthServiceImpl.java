@@ -212,7 +212,13 @@ public class AuthServiceImpl implements AuthService {
             User user = userRepository.findById(userPrincipal.getId()).orElse(null);
             com.smartkrishisahayak.entity.UserLoginActivity loginActivity = null;
             if (user != null) {
-                loginActivity = userActivityService.recordLogin(user, request);
+                try {
+                    loginActivity = userActivityService.recordLogin(user, request);
+                } catch (Exception ex) {
+                    // Do not block authentication if audit logging encounters a database hiccup
+                    org.slf4j.LoggerFactory.getLogger(AuthServiceImpl.class)
+                            .warn("Unable to record login activity audit for user ID={}: {}", user.getId(), ex.getMessage());
+                }
             }
 
             return new AuthResponse(
@@ -225,7 +231,7 @@ public class AuthServiceImpl implements AuthService {
                     userPrincipal.getRole(),
                     loginActivity != null ? loginActivity.getId() : null
             );
-        } catch (BadCredentialsException ex) {
+        } catch (org.springframework.security.core.AuthenticationException ex) {
             throw new BadRequestException("Invalid mobile number/email or password.");
         }
     }
@@ -233,7 +239,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout(UserPrincipal userPrincipal) {
         if (userPrincipal != null && userPrincipal.getId() != null) {
-            userActivityService.recordLogout(userPrincipal.getId());
+            try {
+                userActivityService.recordLogout(userPrincipal.getId());
+            } catch (Exception ex) {
+                org.slf4j.LoggerFactory.getLogger(AuthServiceImpl.class)
+                        .warn("Unable to record logout activity audit for user ID={}: {}", userPrincipal.getId(), ex.getMessage());
+            }
         }
         SecurityContextHolder.clearContext();
     }

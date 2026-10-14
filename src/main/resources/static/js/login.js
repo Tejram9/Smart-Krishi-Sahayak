@@ -3,8 +3,13 @@
  * Includes Role Selection, Quick Demo Credentials, Password Reveal, Caps-Lock Warning & Ambient UX
  */
 document.addEventListener('DOMContentLoaded', () => {
-  // If user is already authenticated, redirect them to their dashboard
-  if (Auth.isAuthenticated()) {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // If redirected with logout parameter, explicitly wipe local auth to prevent bounce loops
+  if (urlParams.has('logout') || urlParams.has('logged_out')) {
+    Auth.clearAuth();
+  } else if (Auth.isAuthenticated()) {
+    // If user is already authenticated and not explicitly logging out, redirect to dashboard
     Auth.redirectByRole();
     return;
   }

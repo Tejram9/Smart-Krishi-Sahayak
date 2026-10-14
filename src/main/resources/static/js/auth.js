@@ -66,34 +66,58 @@ const Auth = (() => {
         // Ignore storage errors
       }
     }
-    try {
-      if (getToken() && typeof Api !== 'undefined') {
-        await Api.post('/api/v1/auth/logout', null, true);
+
+    const token = getToken();
+
+    // 1. Immediately wipe authentication state from client storage
+    clearAuth();
+
+    // 2. Notify backend audit logs asynchronously (fire-and-forget with 1.5s timeout abort)
+    if (token) {
+      try {
+        const logoutUrl = typeof Api !== 'undefined' ? Api.formatUrl('/api/v1/auth/logout') : '/api/v1/auth/logout';
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), 1500) : null;
+
+        fetch(logoutUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({}),
+          signal: controller ? controller.signal : undefined
+        }).finally(() => {
+          if (timeoutId) clearTimeout(timeoutId);
+        }).catch(() => {
+          // Ignore network or serverless container sleep errors during logout
+        });
+      } catch (e) {
+        // Ignore notification errors
       }
-    } catch (e) {
-      console.warn('Backend logout notification failed, clearing local session:', e);
-    } finally {
-      clearAuth();
-      if (skipLogoutPage) {
-        window.location.href = 'login.html?logout=true';
-      } else {
-        window.location.href = 'logout.html';
-      }
+    }
+
+    // 3. Immediately redirect to logout confirmation or login page
+    if (skipLogoutPage) {
+      window.location.href = '/login.html?logout=true';
+    } else {
+      window.location.href = '/logout.html';
     }
   }
 
   function redirectByRole(roleOverride) {
     const role = roleOverride || getRole();
     if (role === 'ROLE_ADMIN') {
-      window.location.href = 'admin-dashboard.html';
+      window.location.href = '/admin-dashboard.html';
     } else {
-      window.location.href = 'farmer-dashboard.html';
+      window.location.href = '/farmer-dashboard.html';
     }
   }
 
   function requireAuthentication() {
     if (!isAuthenticated()) {
-      window.location.href = 'login.html';
+      window.location.href = '/login.html';
       return false;
     }
     return true;
@@ -104,9 +128,9 @@ const Auth = (() => {
     const currentRole = getRole();
     if (currentRole !== requiredRole) {
       if (currentRole === 'ROLE_FARMER') {
-        window.location.href = 'farmer-dashboard.html?access_denied=true';
+        window.location.href = '/farmer-dashboard.html?access_denied=true';
       } else {
-        window.location.href = 'admin-dashboard.html?access_denied=true';
+        window.location.href = '/admin-dashboard.html?access_denied=true';
       }
       return false;
     }
