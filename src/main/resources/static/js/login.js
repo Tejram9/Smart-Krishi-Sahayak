@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Check URL parameters for session notifications
-  const urlParams = new URLSearchParams(window.location.search);
+  // (urlParams is already declared above and reused here)
   if (urlParams.has('expired')) {
     showAlert(I18n.getTranslation('err_session_expired') || 'Your session has expired. Please log in again to continue.', 'danger');
   } else if (urlParams.has('access_denied')) {
