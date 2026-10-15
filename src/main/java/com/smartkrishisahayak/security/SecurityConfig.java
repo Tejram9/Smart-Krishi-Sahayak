@@ -28,7 +28,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:https://smart-krishi-sahayak-86ks.vercel.app,http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,http://127.0.0.1:3000}")
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins:https://smart-krishi-sahayak-86ks.vercel.app,https://*.vercel.app,http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,http://127.0.0.1:3000}")
     private String allowedOriginsConfig;
 
     @Autowired
@@ -66,13 +66,17 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        java.util.List<String> origins = java.util.Arrays.stream(allowedOriginsConfig.split(","))
+        // Use setAllowedOriginPatterns() instead of setAllowedOrigins() — required for
+        // allowCredentials(true) to work with wildcard patterns (e.g. *.vercel.app).
+        // setAllowedOrigins() with allowCredentials(true) causes 403 for any pattern mismatch.
+        java.util.List<String> originPatterns = java.util.Arrays.stream(allowedOriginsConfig.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(java.util.stream.Collectors.toList());
-        configuration.setAllowedOrigins(origins);
-        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
+        configuration.setAllowedOriginPatterns(originPatterns);
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(java.util.List.of("*"));
+        configuration.setExposedHeaders(java.util.List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
