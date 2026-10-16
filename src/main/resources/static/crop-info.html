@@ -218,6 +218,46 @@
       color: white;
     }
 
+    /* Precision Agronomic Specs in Modal */
+    .agro-card {
+      background: #fbfdfb;
+      border: 1px solid #e2ebe2;
+      border-radius: var(--radius-md);
+      padding: 0.9rem 1rem;
+      height: 100%;
+      transition: var(--transition-fast);
+    }
+    .agro-card:hover {
+      border-color: #81c784;
+      background: #ffffff;
+      box-shadow: 0 4px 10px rgba(46, 125, 50, 0.08);
+    }
+    .agro-card-label {
+      font-size: 0.775rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .agro-card-val {
+      font-size: 0.925rem;
+      font-weight: 600;
+      color: #1f2937;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .agro-banner {
+      background: #f8faf8;
+      border: 1px solid #e0eae0;
+      border-radius: var(--radius-md);
+      padding: 1rem 1.15rem;
+      margin-bottom: 1rem;
+    }
+
     /* Advisory Card in Modal */
     .advisory-item {
       background: #f8faf8;
@@ -576,21 +616,94 @@
             </div>
 
             <!-- Agronomic Specifications Grid -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-sliders2-vertical text-success"></i>
+                <span data-i18n="modal_agronomy_specs_title">Precision Agronomic Specifications</span>
+              </h6>
+              <div class="row g-3">
+                <!-- Seed Rate & Spacing -->
+                <div class="col-12 col-md-6">
+                  <div class="agro-card">
+                    <div class="agro-card-label">
+                      <i class="bi bi-bezier2 text-success"></i> <span data-i18n="modal_seed_rate_spacing">Seed Rate & Spacing</span>
+                    </div>
+                    <div id="modalSeedRate" class="agro-card-val">-</div>
+                  </div>
+                </div>
+                <!-- Duration & Maturity -->
+                <div class="col-12 col-md-6">
+                  <div class="agro-card">
+                    <div class="agro-card-label">
+                      <i class="bi bi-hourglass-split text-warning"></i> <span data-i18n="modal_duration_maturity">Duration & Maturity</span>
+                    </div>
+                    <div id="modalDuration" class="agro-card-val">-</div>
+                  </div>
+                </div>
+                <!-- Climate & Temperature -->
+                <div class="col-12 col-md-6">
+                  <div class="agro-card">
+                    <div class="agro-card-label">
+                      <i class="bi bi-thermometer-sun text-danger"></i> <span data-i18n="modal_climate_temp">Climate & Temperature</span>
+                    </div>
+                    <div id="modalClimate" class="agro-card-val">-</div>
+                  </div>
+                </div>
+                <!-- Soil pH & Requirements -->
+                <div class="col-12 col-md-6">
+                  <div class="agro-card">
+                    <div class="agro-card-label">
+                      <i class="bi bi-layers text-success"></i> <span data-i18n="modal_soil_ph">Soil pH & Classification</span>
+                    </div>
+                    <div id="modalSoil" class="agro-card-val">-</div>
+                  </div>
+                </div>
+                <!-- Water & Irrigation Requirements -->
+                <div class="col-12 col-md-6">
+                  <div class="agro-card">
+                    <div class="agro-card-label">
+                      <i class="bi bi-droplet-fill text-primary"></i> <span data-i18n="modal_water_req">Water & Irrigation</span>
+                    </div>
+                    <div id="modalWater" class="agro-card-val">-</div>
+                  </div>
+                </div>
+                <!-- Yield Potential per Acre -->
+                <div class="col-12 col-md-6">
+                  <div class="agro-card">
+                    <div class="agro-card-label">
+                      <i class="bi bi-graph-up-arrow text-success"></i> <span data-i18n="modal_yield_potential">Estimated Yield per Acre</span>
+                    </div>
+                    <div id="modalYield" class="agro-card-val">-</div>
+                  </div>
+                </div>
+                <!-- Recommended NPK Fertilizer Dose -->
+                <div class="col-12">
+                  <div class="agro-card">
+                    <div class="agro-card-label">
+                      <i class="bi bi-flower1 text-info"></i> <span data-i18n="modal_npk_fertilizer">Recommended NPK Fertilizer Dose</span>
+                    </div>
+                    <div id="modalNpk" class="agro-card-val">-</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pest Watch & Harvest Indicators -->
             <div class="row g-3 mb-4">
               <div class="col-12 col-md-6">
-                <div class="p-3 rounded-3 border bg-light h-100">
-                  <div class="text-muted fw-bold small text-uppercase mb-1">
-                    <i class="bi bi-layers text-success me-1"></i> <span data-i18n="modal_soil_req">Soil Requirements</span>
+                <div class="agro-banner h-100 border-start border-3 border-danger">
+                  <div class="fw-bold text-danger small text-uppercase mb-1 d-flex align-items-center gap-1">
+                    <i class="bi bi-bug-fill"></i> <span data-i18n="modal_pest_watch">Major Pests & Pathogens to Monitor</span>
                   </div>
-                  <div id="modalSoil" class="fw-semibold text-dark">-</div>
+                  <div id="modalPestWatch" class="text-secondary small fw-medium">-</div>
                 </div>
               </div>
               <div class="col-12 col-md-6">
-                <div class="p-3 rounded-3 border bg-light h-100">
-                  <div class="text-muted fw-bold small text-uppercase mb-1">
-                    <i class="bi bi-droplet-fill text-primary me-1"></i> <span data-i18n="modal_water_req">Water & Irrigation</span>
+                <div class="agro-banner h-100 border-start border-3 border-warning">
+                  <div class="fw-bold text-warning-emphasis small text-uppercase mb-1 d-flex align-items-center gap-1">
+                    <i class="bi bi-check-circle-fill"></i> <span data-i18n="modal_harvest_indicators">Harvest Readiness & Maturity Signs</span>
                   </div>
-                  <div id="modalWater" class="fw-semibold text-dark">-</div>
+                  <div id="modalHarvestSigns" class="text-secondary small fw-medium">-</div>
                 </div>
               </div>
             </div>

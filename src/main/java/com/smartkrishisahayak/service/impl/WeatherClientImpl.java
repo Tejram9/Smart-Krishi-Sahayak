@@ -13,7 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Locale;
 
 @Component
 public class WeatherClientImpl implements WeatherClient {
@@ -96,6 +99,7 @@ public class WeatherClientImpl implements WeatherClient {
 
     private WeatherData fetchFromOpenMeteo(double lat, double lon, String location, String state) {
         String url = String.format(
+                Locale.US,
                 "%s/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,cloud_cover&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia/Kolkata",
                 getEffectiveBaseUrl(), lat, lon
         );
@@ -162,9 +166,12 @@ public class WeatherClientImpl implements WeatherClient {
     }
 
     private WeatherData fetchFromOpenWeatherMap(String location, String state) {
+        String encodedLoc = URLEncoder.encode(location != null ? location : "", StandardCharsets.UTF_8);
+        String encodedState = URLEncoder.encode(state != null ? state : "", StandardCharsets.UTF_8);
         String url = String.format(
+                Locale.US,
                 "https://api.openweathermap.org/data/2.5/weather?q=%s,%s,IN&appid=%s&units=metric",
-                location, state, apiKey
+                encodedLoc, encodedState, apiKey
         );
 
         log.debug("Calling OpenWeatherMap API for location: {}", location);

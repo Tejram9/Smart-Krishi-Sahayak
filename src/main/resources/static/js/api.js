@@ -27,7 +27,7 @@ const Api = (() => {
       if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
       const host = parsed.hostname.toLowerCase();
       if (host === window.location.hostname.toLowerCase()) return true;
-      return ALLOWED_BACKEND_HOSTS.has(host) || host.endsWith('.vercel.app');
+      return ALLOWED_BACKEND_HOSTS.has(host);
     } catch (e) {
       return false;
     }
@@ -144,12 +144,21 @@ const Api = (() => {
       const responseData = isJson ? await response.json() : null;
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (response.status === 401 && requiresAuth) {
           Auth.clearAuth();
           const currentPath = window.location.pathname || '';
-          if (!currentPath.endsWith('login.html') &&
-              !currentPath.endsWith('register.html') &&
-              !currentPath.endsWith('logout.html')) {
+          const isPublicPage = currentPath.endsWith('login.html') ||
+              currentPath.endsWith('register.html') ||
+              currentPath.endsWith('logout.html') ||
+              currentPath.endsWith('index.html') ||
+              currentPath.endsWith('about.html') ||
+              currentPath.endsWith('crop-info.html') ||
+              currentPath.endsWith('crop-disease-advisory.html') ||
+              currentPath.endsWith('equipment-irrigation.html') ||
+              currentPath.endsWith('forgot-password.html') ||
+              currentPath.endsWith('admin-register.html') ||
+              currentPath === '/' || currentPath === '';
+          if (!isPublicPage) {
             window.location.href = '/login.html?expired=true';
           }
         }
@@ -202,10 +211,11 @@ const Api = (() => {
       const responseData = isJson ? await response.json() : null;
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (response.status === 401 && requiresAuth) {
           Auth.clearAuth();
-          if (!window.location.pathname.endsWith('login.html') && !window.location.pathname.endsWith('register.html')) {
-            window.location.href = 'login.html?expired=true';
+          const currentPath = window.location.pathname || '';
+          if (!currentPath.endsWith('login.html') && !currentPath.endsWith('register.html')) {
+            window.location.href = '/login.html?expired=true';
           }
         }
         const errorMessage = responseData?.message ||

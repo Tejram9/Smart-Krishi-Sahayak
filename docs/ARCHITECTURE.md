@@ -176,7 +176,7 @@ com.smartkrishisahayak
 ## 3. Frontend Web Architecture
 
 ### 3.1 Static Resource Serving
-During Phase A, the web application is served directly via Spring Boot's static resource handler located at `src/main/resources/static/`. This keeps setup straightforward for a 4-member student team while ensuring zero coupling between UI HTML and Java server code.
+During Phase A, the web application is served directly via Spring Boot's static resource handler located at `src/main/resources/static/`. This keeps setup straightforward for a 5-member student team while ensuring zero coupling between UI HTML and Java server code.
 
 ### 3.2 Directory Structure (`src/main/resources/static/`)
 ```

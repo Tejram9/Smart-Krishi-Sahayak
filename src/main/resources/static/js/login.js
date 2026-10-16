@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
           setTimeout(() => {
             const params = new URLSearchParams(window.location.search);
             const redirect = params.get('redirect');
-            if (redirect && !redirect.startsWith('http://') && !redirect.startsWith('https://') && !redirect.startsWith('//')) {
+            if (redirect && redirect.startsWith('/') && !redirect.startsWith('//') && !redirect.includes('\\') && !redirect.includes(':')) {
               window.location.href = redirect;
             } else {
               Auth.redirectByRole(response.data.role);
@@ -251,7 +251,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function showAlert(message, type = 'danger') {
     if (!alertBanner) return;
     alertBanner.className = `alert-banner alert-banner-${type}`;
-    alertBanner.innerHTML = message;
+    if (type === 'danger') {
+      alertBanner.textContent = message;
+    } else {
+      alertBanner.innerHTML = message;
+    }
     alertBanner.style.display = 'block';
   }
 

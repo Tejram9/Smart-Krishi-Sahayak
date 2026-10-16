@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Intelligent Agricultural Advisory Engine converting weather parameters
@@ -30,10 +31,10 @@ public class WeatherAdvisoryEngine {
         String seasonEn = getSeasonEn(currentMonth);
         String seasonLocalized = getSeasonLocalized(seasonEn, lang);
 
-        String tempStr = String.format("%.1f°C", temp);
+        String tempStr = String.format(Locale.US, "%.1f°C", temp);
         String humidityStr = humidity + "%";
-        String windStr = String.format("%.1f km/h", wind);
-        String rainfallStr = rain > 0 ? String.format("%.1f mm (Rain)", rain) : "Dry / Nil (0.0 mm)";
+        String windStr = String.format(Locale.US, "%.1f km/h", wind);
+        String rainfallStr = rain > 0 ? String.format(Locale.US, "%.1f mm (Rain)", rain) : "Dry / Nil (0.0 mm)";
 
         String localizedCondition = translateCondition(weather.getConditionText(), lang);
 
@@ -199,7 +200,7 @@ public class WeatherAdvisoryEngine {
 
         if ("MR".equals(lang)) {
             if (wind > 15.0) {
-                works.add(String.format("वाऱ्याचा वेग जास्त (%.1f km/h) असल्याने कीटकनाशकांची फवारणी टाळा, अन्यथा औषध हवेत उडून जाईल.", wind));
+                works.add(String.format(Locale.US, "वाऱ्याचा वेग जास्त (%.1f km/h) असल्याने कीटकनाशकांची फवारणी टाळा, अन्यथा औषध हवेत उडून जाईल.", wind));
             } else if (rain > 1.0) {
                 works.add("जमीन ओली असल्याने आंतरमशागत व ट्रॅक्टरची कामे पाऊस उघडेपर्यंत थांबवा.");
             } else {
@@ -208,7 +209,7 @@ public class WeatherAdvisoryEngine {
             works.add("पिकांच्या संवेदनशील वाढीच्या टप्प्यावर गरजेनुसार हलके सिंचन द्या.");
         } else if ("HI".equals(lang)) {
             if (wind > 15.0) {
-                works.add(String.format("हवा की गति अधिक (%.1f km/h) होने के कारण कीटनाशक छिड़काव से बचें ताकि दवा व्यर्थ न जाए।", wind));
+                works.add(String.format(Locale.US, "हवा की गति अधिक (%.1f km/h) होने के कारण कीटनाशक छिड़काव से बचें ताकि दवा व्यर्थ न जाए।", wind));
             } else if (rain > 1.0) {
                 works.add("खेत में अत्यधिक नमी के समय निराई-गुड़ाई का कार्य मौसम साफ होने तक टालें।");
             } else {
@@ -217,7 +218,7 @@ public class WeatherAdvisoryEngine {
             works.add("फसलों में क्रांतिक विकास अवस्थाओं पर समय पर संतुलित सिंचाई सुनिश्चित करें।");
         } else {
             if (wind > 15.0) {
-                works.add(String.format("Wind speed exceeds safe threshold (%.1f km/h). Postpone spraying to prevent pesticide spray drift.", wind));
+                works.add(String.format(Locale.US, "Wind speed exceeds safe threshold (%.1f km/h). Postpone spraying to prevent pesticide spray drift.", wind));
             } else if (rain > 1.0) {
                 works.add("Soil is saturated; postpone intercultural tillage operations until topsoil dries appropriately.");
             } else {

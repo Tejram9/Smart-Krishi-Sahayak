@@ -1,7 +1,7 @@
 {
   "name": "cep_project",
   "version": "1.0.0",
-  "description": "> **Community Engagement Project (CEP)**   > **Developed by:** 2nd Year Computer Science & Engineering Students (Team of 4)",
+  "description": "> **Community Engagement Project (CEP)**   > **Developed by:** 2nd Year Computer Science & Engineering Students (Team of 5)",
   "main": "index.js",
   "directories": {
     "doc": "docs"

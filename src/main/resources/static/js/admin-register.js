@@ -125,7 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function showAlert(message, type = 'danger') {
     if (!alertBanner) return;
     alertBanner.className = `alert-banner alert-banner-${type}`;
-    alertBanner.innerHTML = message;
+    if (type === 'danger') {
+      alertBanner.textContent = message;
+    } else {
+      alertBanner.innerHTML = message;
+    }
     alertBanner.style.display = 'block';
   }
 

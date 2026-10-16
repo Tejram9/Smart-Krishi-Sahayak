@@ -90,38 +90,50 @@
           <hr class="my-3 text-muted">
           <h6 class="fw-bold text-success mb-2"><i class="bi bi-geo-alt-fill"></i> Farm & Location Information</h6>
 
-          <!-- District -->
-          <div class="col-md-4">
-            <label for="district" class="form-label"><span data-i18n="reg_district">District</span> <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="district" data-i18n-placeholder="reg_district_placeholder" placeholder="e.g., Nashik, Pune" required>
+          <!-- State -->
+          <div class="col-md-6">
+            <label for="state" class="form-label"><span data-i18n="reg_state">State</span> <span class="text-danger">*</span></label>
+            <select class="form-select" id="state" required>
+              <option value="" data-i18n="reg_select_state">-- Select State --</option>
+            </select>
+            <input type="text" class="form-control mt-2 d-none" id="stateCustom" data-i18n-placeholder="reg_custom_state_placeholder" placeholder="Enter State Name">
           </div>
 
-          <!-- State -->
-          <div class="col-md-4">
-            <label for="state" class="form-label" data-i18n="reg_state">State</label>
-            <input type="text" class="form-control" id="state" value="Maharashtra" required>
+          <!-- District -->
+          <div class="col-md-6">
+            <label for="district" class="form-label"><span data-i18n="reg_district">District</span> <span class="text-danger">*</span></label>
+            <select class="form-select" id="district" required disabled>
+              <option value="" data-i18n="reg_select_district">-- Select District --</option>
+            </select>
+            <input type="text" class="form-control mt-2 d-none" id="districtCustom" data-i18n-placeholder="reg_custom_district_placeholder" placeholder="Enter District Name">
           </div>
 
           <!-- Taluka -->
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label for="taluka" class="form-label" data-i18n="reg_taluka">Taluka (Optional)</label>
-            <input type="text" class="form-control" id="taluka" placeholder="e.g., Niphad">
+            <select class="form-select" id="taluka" disabled>
+              <option value="" data-i18n="reg_select_taluka">-- Select Taluka --</option>
+            </select>
+            <input type="text" class="form-control mt-2 d-none" id="talukaCustom" data-i18n-placeholder="reg_custom_taluka_placeholder" placeholder="Enter Taluka Name">
           </div>
 
           <!-- Village -->
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label for="village" class="form-label" data-i18n="reg_village">Village (Optional)</label>
-            <input type="text" class="form-control" id="village" placeholder="e.g., Pimpalgaon">
+            <select class="form-select" id="village" disabled>
+              <option value="" data-i18n="reg_select_village">-- Select Village --</option>
+            </select>
+            <input type="text" class="form-control mt-2 d-none" id="villageCustom" data-i18n-placeholder="reg_custom_village_placeholder" placeholder="Enter Village Name">
           </div>
 
           <!-- Land Size -->
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label for="landSizeAcres" class="form-label" data-i18n="reg_land_size">Land Size in Acres (Optional)</label>
             <input type="number" step="0.1" min="0" class="form-control" id="landSizeAcres" placeholder="e.g., 4.5">
           </div>
 
           <!-- Soil Type -->
-          <div class="col-md-4">
+          <div class="col-md-6">
             <label for="soilType" class="form-label" data-i18n="reg_soil_type">Soil Type (Optional)</label>
             <input type="text" class="form-control" id="soilType" data-i18n-placeholder="reg_soil_type_placeholder" placeholder="e.g., Black Cotton">
           </div>
@@ -163,6 +175,7 @@
   <script src="/js/api.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/i18n.js"></script>
+  <script src="/js/location-data.js"></script>
   <script src="/js/register.js"></script>
 </body>
 </html>

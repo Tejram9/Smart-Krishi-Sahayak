@@ -7,15 +7,20 @@ const I18n = (() => {
   let translations = {};
   let currentLang = DEFAULT_LANG;
 
+  const SUPPORTED_LANGS = new Set(['en', 'mr', 'hi']);
+
   async function loadLanguage(lang) {
-    const langCode = (lang || DEFAULT_LANG).toLowerCase();
+    let langCode = (lang || DEFAULT_LANG).toLowerCase();
+    if (!SUPPORTED_LANGS.has(langCode)) {
+      langCode = DEFAULT_LANG.toLowerCase();
+    }
     try {
       const response = await fetch(`/lang/${langCode}.json`);
       if (!response.ok) {
         throw new Error(`Failed to load translation file for ${langCode}`);
       }
       translations = await response.json();
-      currentLang = lang.toUpperCase();
+      currentLang = langCode.toUpperCase();
       localStorage.setItem(LANG_STORAGE_KEY, currentLang);
       applyTranslations();
     } catch (error) {

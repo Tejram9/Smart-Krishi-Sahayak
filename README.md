@@ -1,7 +1,7 @@
 # Smart Krishi Sahayak: AI-Based Farmer Assistance and Precision Farming System
 
 > **Community Engagement Project (CEP)**  
-> **Developed by:** 2nd Year Computer Science & Engineering Students (Team of 4)
+> **Developed by:** 2nd Year Computer Science & Engineering Students (Team of 5)
 
 ---
 
@@ -56,7 +56,7 @@ CEP_PROJECT/
 │   ├── SETUP_GUIDE.md         # Prerequisites, environment variables, local build instructions
 │   ├── TEST_PLAN.md           # Unit, integration, security, and manual test suites
 │   ├── DEPLOYMENT_GUIDE.md    # Production setup, packaging, and security hardening
-│   └── TEAM_TASKS.md          # 4-member task allocation and collaboration matrix
+│   └── TEAM_TASKS.md          # 5-member task allocation and collaboration matrix
 └── README.md                  # Project overview (this file)
 ```
 
